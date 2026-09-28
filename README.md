@@ -2,6 +2,8 @@
 
 A one-page report of Claude Code usage per subscription, built from a [ccusage](https://github.com/ryoppippi/ccusage) daily export.
 
+Live at **https://nek-niels.github.io/claude-usage-showcase/**. Every push to `main` redeploys it.
+
 ```sh
 npm install
 npm run dev     # local preview
