@@ -19,7 +19,7 @@ describe('summarizePlans', () => {
     const [pro, max] = summaries
     expect(pro.plan.id).toBe('pro')
     expect(pro).toMatchObject({ from: '2026-08-24', to: '2026-09-22', calendarDays: 30, activeDays: 22 })
-    expect(max).toMatchObject({ from: '2026-09-23', to: '2026-10-02', calendarDays: 10, activeDays: 8 })
+    expect(max).toMatchObject({ from: '2026-09-23', to: '2026-10-07', calendarDays: 15, activeDays: 11 })
   })
 
   it('model mix shares sum to 1', () => {
@@ -64,7 +64,7 @@ describe('re-read ratio', () => {
   it('divides cache reads by output tokens, per plan and per day', () => {
     const [pro, max] = summaries
     expect(pro.rereadPerOutput).toBeCloseTo(144, 0)
-    expect(max.rereadPerOutput).toBeCloseTo(188, 0)
+    expect(max.rereadPerOutput).toBeCloseTo(181, 0)
     const rows = rereadSeries(PLANS, usage.daily)
     expect(rows).toHaveLength(usage.daily.length)
     expect(rows.find((r) => r.date === '2026-09-24')!.ratio).toBeCloseTo(167401013 / 866569, 6)
