@@ -11,4 +11,4 @@ npm test        # checks the per-plan numbers add up to usage.json
 npm run build   # static site in dist/
 ```
 
-To refresh the data, replace `usage.json` with a new `ccusage daily --json` export. To record a plan change, add an entry to `src/config/plans.ts`.
+To refresh the data, export from the last day in `usage.json` with `npx ccusage@latest claude daily --breakdown --since YYYYMMDD --json` and merge it in: the new export replaces that day and adds the ones after it. To record a plan change, add an entry to `src/config/plans.ts`.
