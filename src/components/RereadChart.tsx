@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import {
   CartesianGrid,
   Line,
@@ -12,6 +13,7 @@ import {
 import type { PlanSummary, RereadRow } from '../lib/aggregate'
 import { planColor } from '../lib/colors'
 import { useI18n } from '../i18n'
+import { DAY_PACE_MS, useReveal } from '../lib/motion'
 import { Legend } from './Legend'
 
 interface Props {
@@ -38,6 +40,15 @@ export function RereadChart({ rows, plans }: Props) {
   const firstAfter = rows.find((r) => r.date >= last.from)
   const lastRow = rows[rows.length - 1]
   const [a, b] = [plans[0], last]
+  // One left-to-right sweep draws the line and its dots; the plan band opens as the sweep reaches it.
+  const upgradeIndex = firstAfter ? rows.indexOf(firstAfter) : rows.length - 1
+  const sweepMs = (rows.length - 1) * DAY_PACE_MS
+  const [ref, reveal] = useReveal<HTMLDivElement>(sweepMs)
+  const timing = {
+    '--sweep': `${sweepMs}ms`,
+    '--band-delay': `${upgradeIndex * DAY_PACE_MS}ms`,
+    '--band-sweep': `${(rows.length - 1 - upgradeIndex) * DAY_PACE_MS}ms`,
+  } as CSSProperties
 
   function DayTooltip({ active, payload, label }: TooltipContentProps) {
     if (!active || !payload?.length) return null
@@ -61,12 +72,13 @@ export function RereadChart({ rows, plans }: Props) {
       <h2 id="reread-title">{t.reread.title}</h2>
       <p className="lede">{t.reread.lede(fmtInt(a.rereadPerOutput), a.plan.name, fmtInt(b.rereadPerOutput), b.plan.name)}</p>
       <Legend items={plans.map((p) => ({ label: p.plan.name, color: planColor(p.plan.id) }))} />
-      <div className="chart" style={{ height: 300 }}>
+      <div ref={ref} className="chart reread-chart" data-reveal={reveal} style={{ height: 300, ...timing }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={rows} margin={{ top: 28, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--grid)" />
             {firstAfter && (
               <ReferenceArea
+                className="plan-band"
                 x1={firstAfter.date}
                 x2={lastRow.date}
                 fill="var(--plan-max5x)"
@@ -99,6 +111,7 @@ export function RereadChart({ rows, plans }: Props) {
             />
             <Tooltip content={DayTooltip} cursor={{ stroke: 'var(--axis)' }} />
             <Line
+              className="reread-line"
               dataKey="ratio"
               stroke="var(--muted)"
               strokeWidth={2}
