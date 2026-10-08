@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { PLANS } from './config/plans'
 import { dailySeries, rereadSeries, summarizePlans } from './lib/aggregate'
 import { usage } from './lib/usage'
@@ -12,6 +13,7 @@ import { RereadChart } from './components/RereadChart'
 import { Methodology } from './components/Methodology'
 import { LanguageSwitch } from './components/LanguageSwitch'
 import { useI18n } from './i18n'
+import { prefersReducedMotion } from './lib/motion'
 
 const plans = summarizePlans(PLANS, usage.daily)
 const { rows, models } = dailySeries(PLANS, usage.daily)
@@ -34,13 +36,23 @@ export default function App() {
     localStorage.setItem('theme', theme)
   }, [theme])
 
+  // Crossfade the whole page between themes where the browser can, instead of every colour snapping at once.
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    if (!document.startViewTransition || prefersReducedMotion()) return setTheme(next)
+    document.startViewTransition(() => {
+      flushSync(() => setTheme(next))
+      document.documentElement.dataset.theme = next
+    })
+  }
+
   return (
     <div className="page">
       <nav className="topbar">
         <span className="brand">{t.topbar.brand}</span>
         <div className="topbar-controls">
           <LanguageSwitch />
-          <button type="button" className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+          <button type="button" className="theme-toggle" onClick={toggleTheme}>
             {theme === 'dark' ? t.topbar.toLight : t.topbar.toDark}
           </button>
         </div>

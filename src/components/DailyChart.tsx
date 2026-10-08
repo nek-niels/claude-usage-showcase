@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import {
   Bar,
   BarChart,
@@ -13,7 +14,11 @@ import {
 import type { DailyRow, PlanSummary } from '../lib/aggregate'
 import { modelColor } from '../lib/colors'
 import { useI18n } from '../i18n'
+import { DAY_PACE_MS, useReveal } from '../lib/motion'
 import { Legend } from './Legend'
+
+/** The days rise one after another, so the entrance replays the period in date order. */
+const RISE_MS = 480
 
 interface Props {
   rows: DailyRow[]
@@ -21,15 +26,26 @@ interface Props {
   plans: PlanSummary[]
 }
 
-/** A stacked segment with a 2px surface gap above it; only the top segment gets the 4px rounded end. */
-function StackSegment({ fill, isTop, ...box }: BarShapeProps & { isTop: boolean }) {
+/**
+ * A stacked segment with a 2px surface gap above it; only the top segment gets the 4px rounded end.
+ * Every segment of a day scales from the shared baseline, so the whole column rises as one.
+ */
+function StackSegment({ fill, isTop, index, background, ...box }: BarShapeProps & { isTop: boolean }) {
   const [x, y, width, height] = [box.x, box.y, box.width, box.height].map((v) => Number(v ?? 0))
   const h = isTop ? height : height - 2
   if (h <= 0 || width <= 0) return null
   const top = isTop ? y : y + 2
   const r = isTop ? Math.min(4, h, width / 2) : 0
   const d = `M${x},${top + h} V${top + r} Q${x},${top} ${x + r},${top} H${x + width - r} Q${x + width},${top} ${x + width},${top + r} V${top + h} Z`
-  return <path d={d} fill={fill} />
+  const baseline = background ? Number(background.y ?? 0) + background.height : top + h
+  return (
+    <path
+      className="stack-seg"
+      d={d}
+      fill={fill}
+      style={{ transformOrigin: `${x}px ${baseline}px`, '--i': index } as CSSProperties}
+    />
+  )
 }
 
 function DayTooltip({ active, payload, label }: TooltipContentProps) {
@@ -63,18 +79,28 @@ export function DailyChart({ rows, models, plans }: Props) {
   const upgrade = plans[plans.length - 1]
   const firstAfter = rows.find((r) => r.date >= upgrade.from)
   const lastRow = rows[rows.length - 1]
+  const upgradeIndex = firstAfter ? rows.indexOf(firstAfter) : rows.length
+  const [ref, reveal] = useReveal<HTMLDivElement>((rows.length - 1) * DAY_PACE_MS + RISE_MS)
+  const timing = {
+    '--stagger': `${DAY_PACE_MS}ms`,
+    '--rise': `${RISE_MS}ms`,
+    // The plan band opens as the sweep reaches the first day on the new plan, at the same pace.
+    '--band-delay': `${upgradeIndex * DAY_PACE_MS}ms`,
+    '--band-sweep': `${(rows.length - upgradeIndex) * DAY_PACE_MS}ms`,
+  } as CSSProperties
 
   return (
     <section aria-labelledby="daily-title">
       <h2 id="daily-title">{t.daily.title}</h2>
       <p className="lede">{t.daily.lede}</p>
       <Legend items={models.map((m) => ({ label: m, color: modelColor(m) }))} />
-      <div className="chart" style={{ height: 340 }}>
+      <div ref={ref} className="chart daily-chart" data-reveal={reveal} style={{ height: 340, ...timing }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={rows} margin={{ top: 28, right: 8, bottom: 0, left: 0 }} barCategoryGap="22%">
             <CartesianGrid vertical={false} stroke="var(--grid)" />
             {firstAfter && (
               <ReferenceArea
+                className="plan-band"
                 x1={firstAfter.date}
                 x2={lastRow.date}
                 fill="var(--plan-max5x)"

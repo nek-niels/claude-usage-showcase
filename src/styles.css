@@ -23,6 +23,9 @@
   --model-4: #eda100;
 
   --font: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Motion: a confident arrival that is already most of the way there in the first frames. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root[data-theme='dark'] {
@@ -62,6 +65,10 @@ body {
   font-size: 17px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--plan-max5x) 24%, transparent);
 }
 
 a {
@@ -111,6 +118,14 @@ a {
   border-radius: 999px;
   padding: 4px 14px;
   cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.theme-toggle:active {
+  transform: scale(0.97);
 }
 
 .theme-toggle:hover {
@@ -140,6 +155,13 @@ a {
   border: 0;
   border-radius: 999px;
   cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 150ms ease;
+}
+
+.lang-switch button:active {
+  transform: scale(0.95);
 }
 
 .lang-switch button:hover {
@@ -253,24 +275,6 @@ td,
 .hero-bar {
   height: 100%;
   border-radius: 0 4px 4px 0;
-  transform-origin: left;
-  animation: grow 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-.hero-row + .hero-row .hero-bar {
-  animation-delay: 180ms;
-}
-
-@keyframes grow {
-  from {
-    transform: scaleX(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-bar {
-    animation: none;
-  }
 }
 
 .hero-value {
@@ -567,6 +571,176 @@ tbody tr:last-child > * {
   margin: 0;
   display: grid;
   gap: 6px;
+}
+
+/* Motion ------------------------------------------------------------------ */
+/* Numbers that count up: the final value holds the width, the live value is drawn on top of it. */
+.count {
+  display: inline-grid;
+}
+
+.count-sizer,
+.count-live {
+  grid-area: 1 / 1;
+}
+
+.count-sizer {
+  visibility: hidden;
+  user-select: none;
+}
+
+.mini-value .count-live {
+  justify-self: end;
+}
+
+/*
+ * Entrances are keyed off data-reveal (see lib/motion.ts): hidden while `pending`, playing while `in`, and
+ * plain static content once `done`. The figures fill the way the data accumulates: bars fill to their value,
+ * days rise in date order, the line is drawn through time, and the plan band opens as time reaches it.
+ */
+@media screen and (prefers-reduced-motion: no-preference) {
+  [data-reveal='pending'] :is(.hero-bar, .mini-bar, .mix-bar) {
+    clip-path: inset(0 100% 0 0 round 0 4px 4px 0);
+  }
+
+  [data-reveal='in'] :is(.hero-bar, .mini-bar, .mix-bar) {
+    animation: fill var(--fill, 700ms) var(--ease-out) var(--delay, 0ms) both;
+  }
+
+  .hero-bars {
+    --fill: 800ms;
+  }
+
+  .daily-chart .stack-seg {
+    transform-box: view-box;
+  }
+
+  .daily-chart[data-reveal='pending'] .stack-seg {
+    transform: scaleY(0);
+  }
+
+  .daily-chart[data-reveal='in'] .stack-seg {
+    animation: rise var(--rise) var(--ease-out) calc(var(--i) * var(--stagger)) both;
+  }
+
+  /* Recharts draws the dots in their own layer; both span the first to the last day, so one sweep fits both. */
+  .reread-chart[data-reveal='pending'] :is(.reread-line, .recharts-line-dots) {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .reread-chart[data-reveal='in'] :is(.reread-line, .recharts-line-dots) {
+    animation: draw var(--sweep) linear both;
+  }
+
+  .chart[data-reveal='pending'] .plan-band {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .chart[data-reveal='in'] .plan-band {
+    animation: open var(--band-sweep) linear var(--band-delay) both;
+  }
+
+  /* The band's "On Max 5x" label sits in a separate layer; it arrives with its band. */
+  .chart[data-reveal='pending'] .recharts-label {
+    opacity: 0;
+  }
+
+  .chart[data-reveal='in'] .recharts-label {
+    animation: settle 300ms var(--ease-out) var(--band-delay) both;
+  }
+
+  .mix[data-reveal='pending'] .mix-labels {
+    opacity: 0;
+  }
+
+  .mix[data-reveal='in'] .mix-labels {
+    animation: settle 300ms var(--ease-out) var(--label-delay) both;
+  }
+
+  .data-table::details-content {
+    transition:
+      block-size 300ms var(--ease-out),
+      content-visibility 300ms allow-discrete;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 220ms;
+  }
+}
+
+/* Reduced motion keeps the reveal as a short fade and leaves every bar, line and number where it ends. */
+@media screen and (prefers-reduced-motion: reduce) {
+  [data-reveal='pending'] {
+    opacity: 0;
+  }
+
+  [data-reveal='in'] {
+    animation: fade 300ms ease both;
+  }
+}
+
+/* Lets the "Show the numbers" tables open to their height instead of snapping. */
+@supports (interpolate-size: allow-keywords) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  .data-table::details-content {
+    block-size: 0;
+    overflow-y: clip;
+  }
+
+  .data-table[open]::details-content {
+    block-size: auto;
+  }
+}
+
+@keyframes fill {
+  from {
+    clip-path: inset(0 100% 0 0 round 0 4px 4px 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 0 4px 4px 0);
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(-8px);
+  }
+}
+
+@keyframes open {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(2px);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
 }
 
 /* Small screens ----------------------------------------------------------- */
