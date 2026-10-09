@@ -53,7 +53,7 @@ describe('prettyModel', () => {
 describe('dailySeries', () => {
   it('keeps per-model cost for each day', () => {
     const { rows, models } = dailySeries(PLANS, usage.daily)
-    expect(models).toEqual(['Sonnet 5', 'Opus 5', 'Opus 5.5', 'Haiku 4.5', 'Haiku 5.5', 'Sonnet 5.5'])
+    expect(models).toEqual(['Haiku 5.5', 'Sonnet 5.5', 'Sonnet 5', 'Opus 5', 'Opus 5.5', 'Haiku 4.5'])
     const sep25 = rows.find((r) => r.date === '2026-09-25')!
     expect(sep25.total).toBeCloseTo(100.85, 2)
     expect(sep25.plan).toBe('max5x')
