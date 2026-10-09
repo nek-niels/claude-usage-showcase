@@ -148,8 +148,11 @@ export function rereadSeries(plans: Plan[], daily: DailyUsage[]): RereadRow[] {
     .map((d) => ({ date: d.date, plan: assignPlan(plans, d.date), ratio: d.cacheReadTokens / d.outputTokens }))
 }
 
-/** Stable model order for colour assignment: by first appearance in a fixed list, unknowns last. */
-const MODEL_ORDER = ['Sonnet 5', 'Opus 5', 'Opus 5.5', 'Haiku 4.5']
+/**
+ * Stable stacking and legend order: by position in a fixed list, unknowns last. Chosen so the
+ * models that share a day sit next to colours they can be told apart from (see --model-* in styles.css).
+ */
+const MODEL_ORDER = ['Haiku 5.5', 'Sonnet 5.5', 'Sonnet 5', 'Opus 5', 'Opus 5.5', 'Haiku 4.5']
 export function sortModels(models: string[]): string[] {
   const rank = (m: string) => (MODEL_ORDER.indexOf(m) + 1 || 99)
   return [...models].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
