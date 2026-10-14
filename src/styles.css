@@ -16,7 +16,7 @@
   --plan-pro: #8c93a0;
   --plan-max5x: #4a3aa7;
 
-  /* Models: validated categorical slots 1-6. Touching segments in the stacks clear CVD ΔE 6.9 light / 6.5 dark;
+  /* Models: validated categorical slots 1-7. Touching segments in the stacks clear CVD ΔE 6.9 light / 6.5 dark;
      the 2px gaps between segments and the legend carry identity alongside colour. Violet is the Max 5x band. */
   --model-1: #2a78d6;
   --model-2: #eb6834;
@@ -24,6 +24,7 @@
   --model-4: #eda100;
   --model-5: #e34948;
   --model-6: #008300;
+  --model-7: #c050c5;
 
   --font: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
@@ -53,6 +54,7 @@
   --model-4: #c98500;
   --model-5: #e66767;
   --model-6: #008300;
+  --model-7: #ac31a1;
 }
 
 /* Base -------------------------------------------------------------------- */
