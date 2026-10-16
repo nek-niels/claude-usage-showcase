@@ -1,9 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { PLANS } from '../config/plans'
 import { usage } from './usage'
-import { assignPlan, dailySeries, prettyModel, proratedPrice, rereadSeries, summarizePlans } from './aggregate'
+import {
+  assignPlan,
+  dailySeries,
+  daysBetween,
+  prettyModel,
+  proratedPrice,
+  rereadSeries,
+  sortModels,
+  summarizePlans,
+} from './aggregate'
 
 const summaries = summarizePlans(PLANS, usage.daily)
+// usage.json is appended to every weekday, so anything about the open-ended Max 5x period is derived from it.
+const lastDate = usage.daily.map((d) => d.date).sort().at(-1)!
+const maxDays = usage.daily.filter((d) => d.date >= '2026-09-23')
 
 describe('summarizePlans', () => {
   it('plan totals add up to the export totals', () => {
@@ -19,7 +31,12 @@ describe('summarizePlans', () => {
     const [pro, max] = summaries
     expect(pro.plan.id).toBe('pro')
     expect(pro).toMatchObject({ from: '2026-08-24', to: '2026-09-22', calendarDays: 30, activeDays: 22 })
-    expect(max).toMatchObject({ from: '2026-09-23', to: '2026-10-14', calendarDays: 22, activeDays: 16 })
+    expect(max).toMatchObject({
+      from: '2026-09-23',
+      to: lastDate,
+      calendarDays: daysBetween('2026-09-23', lastDate),
+      activeDays: maxDays.length,
+    })
   })
 
   it('model mix shares sum to 1', () => {
@@ -53,7 +70,9 @@ describe('prettyModel', () => {
 describe('dailySeries', () => {
   it('keeps per-model cost for each day', () => {
     const { rows, models } = dailySeries(PLANS, usage.daily)
-    expect(models).toEqual(['Haiku 5.5', 'Sonnet 5.5', 'Sonnet 5', 'Opus 5', 'Opus 5.5', 'Haiku 4.5', 'Fable 5.1'])
+    const seen = new Set(usage.daily.flatMap((d) => d.modelBreakdowns.map((b) => prettyModel(b.modelName))))
+    expect(models).toEqual(sortModels([...seen]))
+    expect(models.slice(0, 7)).toEqual(['Haiku 5.5', 'Sonnet 5.5', 'Sonnet 5', 'Opus 5', 'Opus 5.5', 'Haiku 4.5', 'Fable 5.1'])
     const sep25 = rows.find((r) => r.date === '2026-09-25')!
     expect(sep25.total).toBeCloseTo(100.85, 2)
     expect(sep25.plan).toBe('max5x')
@@ -64,7 +83,8 @@ describe('re-read ratio', () => {
   it('divides cache reads by output tokens, per plan and per day', () => {
     const [pro, max] = summaries
     expect(pro.rereadPerOutput).toBeCloseTo(144, 0)
-    expect(max.rereadPerOutput).toBeCloseTo(195, 0)
+    const maxSum = (f: (d: (typeof maxDays)[number]) => number) => maxDays.reduce((a, d) => a + f(d), 0)
+    expect(max.rereadPerOutput).toBeCloseTo(maxSum((d) => d.cacheReadTokens) / maxSum((d) => d.outputTokens), 9)
     const rows = rereadSeries(PLANS, usage.daily)
     expect(rows).toHaveLength(usage.daily.length)
     expect(rows.find((r) => r.date === '2026-09-24')!.ratio).toBeCloseTo(167401013 / 866569, 6)
