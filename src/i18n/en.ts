@@ -2,46 +2,112 @@
 export const en = {
   title: 'Claude Code on Pro vs Max 5x',
   topbar: {
-    brand: 'Pro vs Max 5x',
+    brand: 'The Usage Ledger',
+    subject: 'Claude Code, Pro vs Max 5x',
+    edition: (date: string) => `Personal edition, ${date}`,
     toLight: 'Light mode',
     toDark: 'Dark mode',
     language: 'Language',
   },
   hero: {
-    kicker: (from: string, to: string) => `Claude Code usage, ${from} to ${to}`,
+    kicker: (from: string, to: string, activeDays: number, calendarDays: number) =>
+      `${from} to ${to}. Claude Code in use on ${activeDays} of ${calendarDays} days.`,
     headline: (upgrade: string, ratio: string, base: string) =>
-      `On ${upgrade}, I get through ${ratio} as much Claude Code work per day as on ${base}.`,
+      `${upgrade} gets me ${ratio} the daily Claude Code work of ${base}`,
     sub: (plan: string, share: string, model: string) =>
       `Usage is measured as what the same tokens would cost on the API. On ${plan}, ${share} of it ran on ${model}.`,
     barsLabel: 'API-equivalent usage per active day, by plan',
-    perActiveDay: 'per active day',
+    chartTitle: 'Usage per active day',
+    chartUnit: 'API-equivalent, US$',
     caption: (base: string, baseDays: number, upgrade: string, upgradeDays: number) =>
-      `API-equivalent usage per day I used Claude Code. ${base}: ${baseDays} active days. ${upgrade}: ${upgradeDays} active days so far.`,
+      `Averaged over the days I used Claude Code. ${base}: ${baseDays} active days. ${upgrade}: ${upgradeDays} active days so far.`,
+    source: 'Source: ccusage daily export (usage.json)',
+  },
+  tape: {
+    label: 'Dateline tape',
+    stories: {
+      front: 'Front page',
+      record: 'The record',
+      averageDay: 'An average day',
+      cache: 'The cache',
+      closing: 'Closing bell',
+    },
+    plan: 'Plan',
+    day: 'Day',
+    noSession: 'No session',
+    total: 'API equivalent',
+    totalShort: 'API',
+    paid: 'Paid to date',
+    multiple: 'Multiple',
+    dayOf: (n: number, total: number) => `Day ${n} of ${total}`,
+    dayOfLabel: 'Position',
+    closing: 'Closing',
+    ticks: 'Jump to a day',
+    tickLabel: (date: string, usage: string) => `${date}: ${usage}`,
+    menu: 'Index',
   },
   perDay: {
-    title: 'An average working day on each plan',
+    kicker: 'Analysis',
+    title: (base: string, upgrade: string) => `An average working day, ${base} against ${upgrade}`,
     lede: (base: string, baseDays: number, upgrade: string, upgradeDays: number) =>
       `${base} ran for ${baseDays} active days and ${upgrade} for only ${upgradeDays} so far, so every figure here is an average per day I used Claude Code.`,
     usage: 'API-equivalent usage',
     tokens: 'Tokens processed',
     output: 'Tokens written by Claude',
+    ratioNote: (upgrade: string, base: string) => `${upgrade} as a multiple of ${base}`,
   },
   daily: {
-    title: 'Every day I used it',
-    lede: 'API-equivalent usage per active day, split by model. Weekends and days off are left out.',
+    title: 'The record, day by day',
+    lede: 'API-equivalent usage per calendar day, stacked by model. A dot on the baseline marks a day without a session.',
     onPlan: (plan: string) => `On ${plan}`,
     total: 'Total',
     date: 'Date',
+    noSession: 'No session',
   },
   mix: {
-    title: 'Which models did the work',
-    lede: 'Share of API-equivalent usage by model. On Pro I rationed Opus and leaned on Sonnet. On Max 5x I could use the newest Opus for almost everything.',
+    title: 'Model mix to date',
     other: 'Other models',
+    notYet: (date: string) => `From ${date}`,
+  },
+  chronicle: {
+    record: (plan: string, value: string) => `${plan} record ${value}`,
+    stopPress: 'Stop press',
+    zoomed: (from: string, to: string) => `Scale zoomed out from ${from} to ${to}`,
+    pro: {
+      headline: (plan: string) => `A steady month on ${plan}`,
+      body: (plan: string, days: number, perDay: string) =>
+        `Each column is one calendar day. On ${plan} I used Claude Code on ${days} days, at about ${perDay} a day in API prices.`,
+      note: (model: string, share: string) => `Opus was rationed. ${model} did ${share} of the work.`,
+    },
+    lull: {
+      headline: 'The last quiet week',
+      body: (plan: string, record: string, date: string) => `The ${plan} record stands at ${record}, set on ${date}.`,
+    },
+    switch: {
+      kicker: (date: string) => `Stop press, ${date}`,
+      headline: (plan: string) => `Upgrade to ${plan}, and the record falls`,
+      body: (plan: string, record: string) =>
+        `The new bars rise straight past the ${plan} record of ${record}. The chart has to zoom out to hold them.`,
+    },
+    max: {
+      headline: (plan: string) => `The ${plan} weeks`,
+      body: (model: string, share: string, perDay: string) =>
+        `No more rationing: ${model} did ${share} of the work, and an active day now averages ${perDay}.`,
+    },
   },
   compare: {
     title: 'The two plans side by side',
-    lede: (base: string, upgrade: string) =>
-      `Both plans returned far more than they cost. ${base} was already used hard, so it returned more per dollar. ${upgrade} is about capacity: more work per day, and on the strongest model.`,
+    ledeBaseLeads: (base: string, baseValue: string, upgrade: string, upgradeValue: string, ratio: string) =>
+      `${base} was already used hard, so it returned more per dollar: ${baseValue} of usage for every $1, against ${upgradeValue} on ${upgrade}. ${upgrade} is about capacity: ${ratio} the work on every active day.`,
+    ledeUpgradeLeads: (base: string, baseValue: string, upgrade: string, upgradeValue: string, ratio: string) =>
+      `${upgrade} returned more per dollar as well: ${upgradeValue} of usage for every $1, against ${baseValue} on ${base}. Above all it is about capacity: ${ratio} the work on every active day.`,
+    notes: {
+      activeDays: 'Days with at least one session.',
+      usage: 'What the same tokens cost at API prices.',
+      reread: 'Cache-read tokens divided by output tokens.',
+      periodCost: 'Monthly price, prorated per calendar day.',
+      perDollar: 'API-equivalent usage divided by subscription cost.',
+    },
     measure: 'Measure',
     change: 'Change',
     price: 'Subscription price',
@@ -58,9 +124,11 @@ export const en = {
     perDollar: 'Usage per $1 of subscription',
   },
   tokens: {
-    title: (total: string) => `Where ${total} tokens came from`,
-    lede: (share: string) =>
-      `${share} of all tokens are Claude re-reading a codebase it has already loaded. That is why the token counts look so large next to the cost.`,
+    title: (total: string) => `${total} tokens, and Claude had read most of them before`,
+    lede: 'Every turn sends the whole conversation again, and the cache serves it back at a fraction of the price. That is why the token counts look so large next to the cost.',
+    shareCaption: 'of all tokens were context Claude had already loaded, read again from the cache.',
+    barLabel: (share: string) => `All tokens by kind. Re-read from cache: ${share}.`,
+    rest: (share: string) => `Everything else ${share}`,
     kind: 'Kind',
     shareOfAll: 'Share of all',
     cacheRead: 'Re-read from cache',
@@ -74,9 +142,11 @@ export const en = {
   },
   reread: {
     title: 'Context re-read for each token Claude writes',
-    lede: (baseValue: string, base: string, upgradeValue: string, upgrade: string) =>
-      `Cache-read tokens divided by output tokens. It rises with bigger codebases and longer sessions, because every turn re-reads the whole conversation. It averaged ${baseValue} on ${base} and ${upgradeValue} on ${upgrade}.`,
-    perToken: (value: string) => `${value} per token`,
+    lede: 'Cache-read tokens divided by output tokens, day by day. It climbs with bigger codebases and longer sessions.',
+    chartLabel: (baseValue: string, base: string, upgradeValue: string, upgrade: string) =>
+      `Line chart of context re-read per token written, per day. It averaged ${baseValue} on ${base} and ${upgradeValue} on ${upgrade}.`,
+    avg: (value: string) => `avg. ${value}`,
+    date: 'Date',
     plan: 'Plan',
     column: 'Re-read per token written',
   },
@@ -91,6 +161,32 @@ export const en = {
     sample: (plan: string, days: number) =>
       `${plan} has ${days} active days so far, which is a small sample. The per-day averages will settle as more days come in.`,
     prorate: 'Subscription cost for a period is the monthly price prorated over a 30-day month.',
+    sourceHead: 'Source.',
+    apiHead: 'API-equivalent.',
+    sampleHead: 'Sample size.',
+    prorateHead: 'Proration.',
+    runLead: 'Run it on your own logs:',
+    copy: 'Copy',
+    copied: 'Copied',
+    selected: 'Selected',
+    copyName: 'Copy the command',
+    copiedName: 'Command copied',
+    selectedName: 'Command selected, ready to copy',
+    imprint: (from: string, to: string) => `This edition: ${from} to ${to}.`,
+    built: 'Built from usage.json, refreshed every weekday.',
+  },
+  close: {
+    headline: (upgrade: string) => `Both plans returned far more than they cost. ${upgrade} buys capacity.`,
+    standfirst: (date: string, days: number) =>
+      `The tape stops on ${date}. Over ${days} days, this is what the work would have cost at API prices, set against what the subscriptions actually cost.`,
+    ledgerTitle: 'Closing ledger',
+    ledgerRange: (from: string, to: string) => `${from} to ${to}`,
+    usage: 'API-equivalent usage',
+    usageNote: 'Every token, priced at API rates',
+    paid: 'Subscriptions paid',
+    paidNote: (base: string, upgrade: string) => `${base} then ${upgrade}, prorated per day`,
+    multiple: 'Multiple',
+    multipleNote: 'Usage for every dollar paid',
   },
 }
 

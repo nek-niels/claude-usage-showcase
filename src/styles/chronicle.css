@@ -1,0 +1,673 @@
+/* The record: the pinned chronicle -------------------------------------------------------------------------
+ * A tall wrapper with a sticky stage under the tape. Scroll through the wrapper is the calendar (see
+ * Chronicle.tsx); everything here is keyed off data attributes the scroll writes, and only transform,
+ * opacity and clip-path ever move. data-still lays the whole story flat and finished.
+ */
+
+.record {
+  --axis-w: 44px;
+  --headroom: 30px;
+  --print-ms: 320ms;
+  --zoom-ms: 900ms;
+}
+
+.rc-wrap {
+  position: relative;
+  height: 520svh;
+}
+
+.rc-stage {
+  position: sticky;
+  top: var(--tape-h);
+  height: calc(100svh - var(--tape-h));
+  display: grid;
+  grid-template-columns: minmax(15rem, 21rem) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'head head'
+    'copy chart'
+    'mix chart';
+  column-gap: var(--s-6);
+  padding: var(--s-4) 0 var(--s-5);
+  border-top: 3px solid var(--rule);
+  background: var(--page);
+}
+
+/* Labels: small caps in the figures face. */
+.rc-label {
+  margin: 0;
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.rc-head {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-6);
+  padding-bottom: var(--s-2);
+  margin-bottom: var(--s-5);
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.record .legend {
+  margin: 0;
+  gap: 2px 16px;
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.record .swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 0;
+  margin-right: 6px;
+}
+
+/* Copy: every chapter sits in the same cell, so the column never changes height as they cross-fade. */
+.rc-copy {
+  grid-area: copy;
+  display: grid;
+  align-content: start;
+}
+
+.rc-chapter {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition:
+    opacity 280ms var(--ease-out),
+    transform 280ms var(--ease-out);
+}
+
+.rc-chapter[data-on='true'] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition-duration: 420ms;
+  transition-delay: 120ms;
+}
+
+.rc-kicker {
+  margin: 0 0 var(--s-3);
+  padding-top: var(--s-2);
+  border-top: 3px solid var(--stop-press);
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--stop-press);
+}
+
+.rc-headline {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 2.6vw, 38px);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.rc-body {
+  max-width: var(--measure);
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.rc-note {
+  display: flex;
+  align-items: baseline;
+  max-width: var(--measure);
+  margin: var(--s-5) 0 0;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--font-figures);
+  font-size: 14px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+/* The chart ------------------------------------------------------------------------------------------- */
+.rc-chart {
+  grid-area: chart;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding-left: var(--s-5);
+  border-left: 1px solid var(--rule-soft);
+}
+
+.rc-plot {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: var(--headroom) 0 0 var(--axis-w);
+}
+
+/* The baseline is the one heavy horizontal in the plot. */
+.rc-plot::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  border-bottom: 1px solid var(--rule);
+  z-index: 2;
+}
+
+/* Gridlines and axis labels ride the scale: each is a plot-sized box moved up by its share of the axis. */
+.rc-tick,
+.rc-ref {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: translateY(calc(var(--v) / var(--ymax) * -100%));
+  transition:
+    transform var(--zoom-ms) var(--ease-out),
+    opacity 400ms var(--ease-out);
+}
+
+.rc-tick {
+  border-bottom: 1px solid var(--rule-soft);
+  opacity: 0;
+}
+
+.rc-tick[data-on='true'] {
+  opacity: 1;
+}
+
+.rc-tick span {
+  position: absolute;
+  left: calc(var(--axis-w) * -1);
+  bottom: 0;
+  width: calc(var(--axis-w) - 8px);
+  transform: translateY(50%);
+  font-family: var(--font-figures);
+  font-size: 12px;
+  line-height: 1;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.rc-bars,
+.rc-offs {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+/* The zoom: before the record falls the layer is stretched to the first plan's axis; then it settles to 1. */
+.rc-bars {
+  transform: scaleY(var(--zoom));
+  transform-origin: 50% 100%;
+  transition: transform var(--zoom-ms) var(--ease-out);
+  z-index: 1;
+}
+
+/* Zooming out waits a beat, so the bar that broke the scale is seen breaking it first. */
+.rc-chart[data-zoomed='true'] :is(.rc-bars, .rc-tick, .rc-ref) {
+  transition-delay: 220ms;
+}
+
+/* A tick joining the new scale travels in from above the plot, through the copy; it only appears once it has
+   nearly landed. A tick leaving the scale is gone before it starts to travel. */
+.rc-chart .rc-tick[data-on='false'] {
+  transition:
+    transform var(--zoom-ms) var(--ease-out) 120ms,
+    opacity 120ms linear;
+}
+
+/* Zooming back in (scrolling up past the record) holds for the same beat, so the scale moves as one. */
+.rc-chart[data-zoomed='false'] :is(.rc-bars, .rc-tick[data-on='true'], .rc-ref) {
+  transition-delay: 120ms;
+}
+
+.rc-chart[data-zoomed='true'] .rc-tick[data-on='false'] {
+  transition-delay: 220ms, 0ms;
+}
+
+.rc-chart[data-zoomed='true'] .rc-tick[data-on='true'] {
+  transition:
+    transform var(--zoom-ms) var(--ease-out) 220ms,
+    opacity 300ms var(--ease-out) calc(220ms + var(--zoom-ms) * 0.7);
+}
+
+.rc-slot,
+.rc-off-slot {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.rc-slot {
+  transition: opacity 600ms var(--ease-out);
+}
+
+/* Once the stop press runs, the old plan steps back. */
+.rc-slot[data-past='true'] {
+  opacity: 0.5;
+}
+
+.rc-bar {
+  position: absolute;
+  bottom: 0;
+  left: 15%;
+  right: 15%;
+  display: flex;
+  flex-direction: column-reverse;
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  transition: transform var(--print-ms) var(--ease-out);
+}
+
+.rc-bar[data-printed='true'] {
+  transform: scaleY(1);
+}
+
+.rc-seg {
+  flex-basis: 0;
+  flex-shrink: 1;
+  min-height: 0;
+}
+
+.rc-seg + .rc-seg {
+  border-bottom: 1px solid var(--page);
+}
+
+.rc-offs {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.rc-off {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 240ms var(--ease-out),
+    transform 240ms var(--ease-out);
+}
+
+.rc-off[data-printed='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* The Pro record: a dashed line across the plot, over the bars, so the new bars visibly pass through it. */
+.rc-ref {
+  border-bottom: 1.5px dashed var(--text-primary);
+  opacity: 0;
+  z-index: 4;
+}
+
+.rc-ref[data-on='true'] {
+  opacity: 1;
+}
+
+.rc-ref span {
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  padding-right: 6px;
+  background: var(--page);
+  font-family: var(--font-figures);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+/* Stop press: a claret rule down the plot at the switch, drawn top to bottom as the playhead reaches it. */
+.rc-stop {
+  position: absolute;
+  top: calc(var(--headroom) * -1);
+  bottom: 0;
+  left: calc(var(--x) * 100%);
+  border-left: 2px solid var(--stop-press);
+  z-index: 4;
+  pointer-events: none;
+  clip-path: inset(0 -20rem 100% -4px);
+  transition: clip-path 500ms var(--ease-out);
+}
+
+.rc-stop[data-on='true'] {
+  clip-path: inset(0 -20rem 0 -4px);
+}
+
+.rc-stop span {
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  white-space: nowrap;
+  font-family: var(--font-figures);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--stop-press);
+}
+
+.rc-zoom {
+  position: absolute;
+  top: var(--s-2);
+  left: var(--s-2);
+  margin: 0;
+  max-width: 50%;
+  font-family: var(--font-figures);
+  font-size: 13px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 300ms var(--ease-out),
+    transform 300ms var(--ease-out);
+  z-index: 4;
+}
+
+.rc-zoom[data-on='true'] {
+  opacity: 1;
+  transform: none;
+  transition-delay: 700ms;
+}
+
+.rc-x {
+  position: relative;
+  flex: none;
+  height: 24px;
+  margin-left: var(--axis-w);
+}
+
+.rc-x span {
+  position: absolute;
+  top: 7px;
+  left: calc(var(--x) * 100%);
+  white-space: nowrap;
+  font-family: var(--font-figures);
+  font-size: 12px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.rc-x span[data-end='true'] {
+  transform: translateX(-60%);
+}
+
+/* Model mix to date ----------------------------------------------------------------------------------- */
+.rc-mix {
+  grid-area: mix;
+  align-self: end;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+
+.rc-mixrow {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  gap: 6px var(--s-3);
+  align-items: center;
+  margin-top: var(--s-3);
+}
+
+.rc-mixplan {
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rc-mixbar {
+  position: relative;
+  height: 14px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+/* Each segment is a full-width strip clipped to its slice; 1px either side leaves a paper gap between them. */
+.rc-mixseg {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc((1 - var(--to)) * 100% + 1px) 0 calc(var(--from) * 100% + 1px));
+  transition: clip-path 320ms var(--ease-out);
+}
+
+.rc-mixlabels {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--s-3);
+  margin: 0;
+  font-family: var(--font-figures);
+  font-size: 13px;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.rc-mixlabels > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.rc-mixlabels b {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rc-mixlabels .swatch {
+  margin-right: 0;
+}
+
+.rc-numbers {
+  margin-top: var(--s-5);
+  font-family: var(--font-figures);
+}
+
+.rc-numbers summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.rc-numbers table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dark: light ink on warm black wants a touch more air. */
+:root[data-theme='dark'] .rc-body {
+  line-height: 1.56;
+  letter-spacing: 0.005em;
+}
+
+/* Phone: copy on top, the chart at full width, one compact mix bar for the plan in force. ------------------ */
+@media (max-width: 700px) {
+  .record {
+    --axis-w: 34px;
+    --headroom: 26px;
+  }
+
+  .rc-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas: 'head' 'copy' 'chart' 'mix';
+    padding: var(--s-3) 0 var(--s-3);
+  }
+
+  .rc-head {
+    margin-bottom: var(--s-3);
+  }
+
+  .record .legend {
+    gap: 0 12px;
+    font-size: 12px;
+  }
+
+  .rc-headline {
+    font-size: 24px;
+    margin-bottom: var(--s-2);
+  }
+
+  .rc-body {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .rc-note {
+    margin-top: var(--s-2);
+    font-size: 13px;
+  }
+
+  .rc-kicker {
+    margin-bottom: var(--s-2);
+  }
+
+  .rc-chart {
+    padding-left: 0;
+    border-left: 0;
+    margin-top: var(--s-3);
+  }
+
+  .rc-bar {
+    left: 10%;
+    right: 10%;
+  }
+
+  .rc-off {
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+  }
+
+  .rc-x span[data-alt='true'] {
+    display: none;
+  }
+
+  .rc-zoom {
+    font-size: 12px;
+    max-width: 55%;
+  }
+
+  .rc-mix {
+    padding-top: var(--s-2);
+  }
+
+  .rc-mix > .rc-label {
+    display: none;
+  }
+
+  .rc-mixrow {
+    margin-top: 0;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .rc-mixrow[data-current='false'] {
+    display: none;
+  }
+
+  .rc-mixlabels {
+    font-size: 12px;
+  }
+}
+
+/* Flat and finished: reduced motion, and print. No pin, every bar printed, every chapter in sequence. ---- */
+.record[data-still='true'] .rc-wrap {
+  height: auto;
+}
+
+.record[data-still='true'] .rc-stage {
+  position: static;
+  height: auto;
+}
+
+.record[data-still='true'] .rc-chart {
+  align-self: start;
+}
+
+.record[data-still='true'] .rc-plot {
+  flex: none;
+  height: 380px;
+}
+
+.record[data-still='true'] .rc-copy {
+  gap: var(--s-5);
+}
+
+.record[data-still='true'] .rc-chapter {
+  grid-area: auto;
+  opacity: 1;
+  transform: none;
+}
+
+.record[data-still='true'] .rc-chapter + .rc-chapter:not([data-chapter='switch']) {
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule-soft);
+}
+
+.record[data-still='true'] .rc-headline {
+  font-size: clamp(22px, 2vw, 28px);
+}
+
+.record[data-still='true'] .rc-mix {
+  margin-top: var(--s-6);
+}
+
+.record[data-still='true'] *,
+.record[data-still='true'] *::before,
+.record[data-still='true'] *::after {
+  transition: none !important;
+}
+
+@media (max-width: 700px) {
+  .record[data-still='true'] .rc-plot {
+    height: 300px;
+  }
+
+  .record[data-still='true'] .rc-mixrow[data-current='false'] {
+    display: grid;
+  }
+}
+
+@media print {
+  .rc-wrap {
+    height: auto;
+  }
+
+  .rc-stage {
+    position: static;
+    height: auto;
+  }
+
+  .rc-plot {
+    flex: none;
+    height: 360px;
+  }
+}

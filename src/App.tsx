@@ -2,24 +2,22 @@ import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { PLANS } from './config/plans'
 import { dailySeries, rereadSeries, summarizePlans } from './lib/aggregate'
+import { ledger } from './lib/ledger'
 import { usage } from './lib/usage'
+import { Masthead } from './components/Masthead'
 import { Hero } from './components/Hero'
-import { PlanComparison } from './components/PlanComparison'
+import { Chronicle } from './components/Chronicle'
 import { PerDayComparison } from './components/PerDayComparison'
-import { DailyChart } from './components/DailyChart'
-import { ModelMix } from './components/ModelMix'
-import { TokenBreakdown } from './components/TokenBreakdown'
-import { RereadChart } from './components/RereadChart'
-import { Methodology } from './components/Methodology'
-import { LanguageSwitch } from './components/LanguageSwitch'
-import { useI18n } from './i18n'
+import { CacheSpread } from './components/CacheSpread'
+import { ClosingBell } from './components/ClosingBell'
 import { prefersReducedMotion } from './lib/motion'
 
 const plans = summarizePlans(PLANS, usage.daily)
 const { rows, models } = dailySeries(PLANS, usage.daily)
 const rereadRows = rereadSeries(PLANS, usage.daily)
+const days = ledger(PLANS, usage.daily)
 
-type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark'
 
 function initialTheme(): Theme {
   const stored = localStorage.getItem('theme')
@@ -27,9 +25,13 @@ function initialTheme(): Theme {
   return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+/**
+ * One broadsheet edition. The tape in the masthead carries the dateline of the day being read: the
+ * chronicle drives it through the calendar (see lib/playhead), and every other story sits before or after.
+ * Story ids are the tape's index: front, record, average-day, cache, closing.
+ */
 export default function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme)
-  const { t } = useI18n()
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -48,25 +50,14 @@ export default function App() {
 
   return (
     <div className="page">
-      <nav className="topbar">
-        <span className="brand">{t.topbar.brand}</span>
-        <div className="topbar-controls">
-          <LanguageSwitch />
-          <button type="button" className="theme-toggle" onClick={toggleTheme}>
-            {theme === 'dark' ? t.topbar.toLight : t.topbar.toDark}
-          </button>
-        </div>
-      </nav>
+      <Masthead plans={plans} days={days} theme={theme} onToggleTheme={toggleTheme} />
       <main>
-        <Hero plans={plans} />
+        <Hero plans={plans} days={days} />
+        <Chronicle rows={rows} models={models} plans={plans} days={days} />
         <PerDayComparison plans={plans} />
-        <DailyChart rows={rows} models={models} plans={plans} />
-        <ModelMix plans={plans} />
-        <PlanComparison plans={plans} />
-        <TokenBreakdown plans={plans} />
-        <RereadChart rows={rereadRows} plans={plans} />
+        <CacheSpread plans={plans} rereadRows={rereadRows} />
+        <ClosingBell plans={plans} days={days} total={usage.totals.totalCost} />
       </main>
-      <Methodology plans={plans} total={usage.totals.totalCost} />
     </div>
   )
 }

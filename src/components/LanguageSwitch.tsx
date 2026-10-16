@@ -26,17 +26,17 @@ function Dannebrog() {
   )
 }
 
-const OPTIONS: Record<Lang, { name: string; Flag: ComponentType }> = {
-  en: { name: 'English', Flag: UnionJack },
-  da: { name: 'Dansk', Flag: Dannebrog },
+const OPTIONS: Record<Lang, { name: string; code: string; Flag: ComponentType }> = {
+  en: { name: 'English', code: 'EN', Flag: UnionJack },
+  da: { name: 'Dansk', code: 'DA', Flag: Dannebrog },
 }
 
 export function LanguageSwitch() {
   const { lang, setLang, t } = useI18n()
   return (
-    <div className="lang-switch" role="group" aria-label={t.topbar.language}>
+    <div className="mast-lang" role="group" aria-label={t.topbar.language}>
       {LANGS.map((l) => {
-        const { name, Flag } = OPTIONS[l]
+        const { name, code, Flag } = OPTIONS[l]
         return (
           <button
             key={l}
@@ -48,6 +48,7 @@ export function LanguageSwitch() {
             onClick={() => setLang(l)}
           >
             <Flag />
+            <span aria-hidden="true">{code}</span>
           </button>
         )
       })}

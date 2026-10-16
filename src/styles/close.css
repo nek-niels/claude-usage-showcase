@@ -1,0 +1,538 @@
+/*
+ * Closing bell: the verdict, the closing ledger, the plans side by side, and the colophon.
+ * Every selector is scoped under .close: this file is imported by a component and lands in the cascade
+ * before styles.css, so equal specificity would lose to the old base rules (h2, th, td, tbody tr).
+ */
+
+.close {
+  margin-top: var(--s-9);
+  padding-top: var(--s-5);
+  border-top: 3px solid var(--rule);
+}
+
+/* The verdict ------------------------------------------------------------- */
+.close .close-headline {
+  margin: 0;
+  max-width: 22em;
+  font-family: var(--font-serif);
+  font-size: clamp(2.25rem, 1.1rem + 3vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.03;
+  letter-spacing: -0.024em;
+  text-wrap: balance;
+  color: var(--text-primary);
+}
+
+.close .close-standfirst {
+  max-width: var(--measure);
+  margin: var(--s-4) 0 var(--s-7);
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* The closing ledger ------------------------------------------------------ */
+.close .close-ledger-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin: 0;
+  padding: var(--s-2) 0;
+  border-top: 3px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.close .close-ledger-head span:last-child {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Three columns share one set of rows, so the figures sit on one baseline whatever their size. */
+.close .close-figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  grid-template-rows: auto auto auto;
+  margin: 0;
+  border-bottom: 4px double var(--rule);
+}
+
+.close .close-figure {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  row-gap: var(--s-3);
+  padding: var(--s-5) var(--s-5) var(--s-5);
+  border-left: 1px solid var(--rule-soft);
+}
+
+.close .close-figure:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.close .close-figure dt {
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.close .close-value {
+  align-self: last baseline;
+  margin: 0;
+  font-family: var(--font-figures);
+  font-size: clamp(2.5rem, 1rem + 3.6vw, 4.25rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--text-primary);
+}
+
+.close .close-figure--multiple .close-value {
+  font-size: clamp(3.25rem, 1rem + 5.4vw, 6rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.close .close-note {
+  margin: 0;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+/* The plans side by side -------------------------------------------------- */
+.close .prices {
+  margin-top: var(--s-9);
+}
+
+.close .prices-title {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.close .prices-lede {
+  max-width: var(--measure);
+  margin: 0 0 var(--s-5);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.close .prices-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 3px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-figures);
+  font-size: 15px;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.close .prices-table th,
+.close .prices-table td {
+  padding: var(--s-3) var(--s-4);
+  text-align: right;
+  vertical-align: baseline;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.close .prices-table :is(th, td):first-child {
+  padding-left: 0;
+  text-align: left;
+  white-space: normal;
+}
+
+.close .prices-table :is(th, td):last-child {
+  padding-right: 0;
+}
+
+.close .prices-table thead th {
+  padding-block: var(--s-2);
+  border-bottom: 1px solid var(--rule);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.close .prices-table tbody th {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.close .prices-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.close .prices-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.close .prices-change {
+  font-weight: 600;
+}
+
+.close .prices-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+.close .prices-cell-label {
+  display: none;
+}
+
+/* Colophon ---------------------------------------------------------------- */
+.close .colophon {
+  margin-top: var(--s-8);
+  padding-top: var(--s-3);
+  border-top: 3px solid var(--rule);
+}
+
+.close .colophon-title {
+  margin: 0 0 var(--s-4);
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.close .colophon-columns {
+  columns: 3;
+  column-gap: var(--s-6);
+  column-rule: 1px solid var(--rule-soft);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  hyphens: auto;
+}
+
+.close .colophon-columns p {
+  margin: 0 0 var(--s-3);
+  text-wrap: pretty;
+}
+
+.close .colophon-runin {
+  margin-right: 0.35em;
+  font-family: var(--font-figures);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.close .colophon-run {
+  margin: var(--s-6) 0 0;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.close .colophon-run-cmd {
+  white-space: nowrap;
+}
+
+.close .colophon-run code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  font-weight: 500;
+}
+
+/* A plain text control: the label is the whole button. Every label shares one cell so the width holds. */
+.close .colophon-copy {
+  display: inline-grid;
+  align-items: center;
+  min-height: 32px;
+  margin-left: var(--s-2);
+  padding: 0 var(--s-2);
+  vertical-align: middle;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-figures);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 150ms var(--ease-out),
+    transform 120ms var(--ease-out);
+}
+
+.close .colophon-copy > span {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.close .colophon-copy > span.is-shown {
+  visibility: visible;
+}
+
+.close .colophon-copy[data-state='copied'] > span {
+  text-decoration: none;
+}
+
+.close .colophon-copy[data-state='copied'],
+.close .colophon-copy[data-state='selected'] {
+  color: var(--text-primary);
+}
+
+.close .colophon-copy:active {
+  transform: translateY(1px);
+}
+
+.close .colophon-copy:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .close .colophon-copy:hover {
+    color: var(--text-primary);
+  }
+}
+
+.close .colophon-imprint {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s-1) var(--s-5);
+  margin: var(--s-6) 0 0;
+  padding-top: var(--s-3);
+  border-top: 4px double var(--rule);
+  font-family: var(--font-figures);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+/* Night edition: light type on dark paper gets a touch more air and weight. */
+:root[data-theme='dark'] .close .close-headline {
+  line-height: 1.07;
+  letter-spacing: -0.016em;
+}
+
+:root[data-theme='dark'] .close :is(.close-standfirst, .prices-lede, .colophon-columns, .close-note) {
+  font-weight: 430;
+  letter-spacing: 0.005em;
+}
+
+/* Entrances: once, on entry. The figures rise in reading order and tick; the table rows follow. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .close .close-ledger[data-reveal='pending'] .close-figure,
+  .close .prices[data-reveal='pending'] tbody tr {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  .close .close-ledger[data-reveal='in'] .close-figure {
+    animation: close-in 620ms var(--ease-out) calc(var(--i) * 80ms) both;
+  }
+
+  .close .prices[data-reveal='in'] tbody tr {
+    animation: close-in 620ms var(--ease-out) calc(var(--i) * 40ms) both;
+  }
+}
+
+@keyframes close-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* Mid widths: two columns of colophon. */
+@media (max-width: 900px) {
+  .close .colophon-columns {
+    columns: 2;
+  }
+}
+
+/* Phone: composed for 390 wide, not shrunk. The ledger becomes a statement, the table stacks. */
+@media (max-width: 640px) {
+  .close {
+    margin-top: var(--s-8);
+    padding-top: var(--s-4);
+  }
+
+  .close .close-headline {
+    font-size: 2.15rem;
+    line-height: 1.05;
+  }
+
+  .close .close-standfirst {
+    margin-bottom: var(--s-6);
+    font-size: 1.05rem;
+  }
+
+  .close .close-ledger-head {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .close .close-figures {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  .close .close-figure {
+    grid-row: auto;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: var(--s-4);
+    row-gap: var(--s-1);
+    align-items: center;
+    padding: var(--s-4) 0;
+    border-left: 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  .close .close-figure:first-child {
+    border-top: 0;
+  }
+
+  .close .close-figure--multiple {
+    border-top: 1px solid var(--rule);
+  }
+
+  .close .close-figure dt {
+    grid-area: 1 / 1;
+    align-self: end;
+  }
+
+  .close .close-note {
+    grid-area: 2 / 1;
+    align-self: start;
+    font-size: 14px;
+  }
+
+  .close .close-value {
+    grid-area: 1 / 2 / 3 / 3;
+    align-self: center;
+    font-size: 2.4rem;
+  }
+
+  .close .close-figure--multiple .close-value {
+    font-size: 3.25rem;
+  }
+
+  .close .prices {
+    margin-top: var(--s-8);
+  }
+
+  .close .prices-title {
+    font-size: 1.5rem;
+  }
+
+  /* The table reflows into stacked rows: the measure, then the plan values and the change under it. */
+  .close .prices-table,
+  .close .prices-table tbody {
+    display: block;
+  }
+
+  .close .prices-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .close .prices-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr minmax(3.5rem, auto);
+    column-gap: var(--s-4);
+    row-gap: var(--s-2);
+    padding: var(--s-3) 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .close .prices-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .close .prices-table tbody :is(th, td) {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .close .prices-table tbody th {
+    grid-column: 1 / -1;
+  }
+
+  .close .prices-table tbody td.prices-change {
+    text-align: right;
+  }
+
+  .close .prices-change--none {
+    display: none;
+  }
+
+  .close .prices-cell-label {
+    display: block;
+    margin-bottom: 1px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .close .colophon-columns {
+    columns: 1;
+  }
+
+  .close .colophon-run {
+    font-size: 1.05rem;
+  }
+
+  .close .colophon-copy {
+    min-width: 44px;
+    min-height: 44px;
+    margin-left: var(--s-1);
+  }
+
+  .close .colophon-imprint {
+    flex-direction: column;
+  }
+}

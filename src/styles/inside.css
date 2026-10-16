@@ -1,0 +1,695 @@
+/*
+ * The inside pages: "An average day" and "The cache". Set as broadsheet stories: a heavy rule over each,
+ * hairline column rules inside, Newsreader for voice, Plex Sans Condensed for every figure and label.
+ * Overrides of old shared rules (main > section margin, h2, table, th/td, .data-table) are scoped to .inside.
+ */
+
+/* Story frame -------------------------------------------------------------- */
+main > section.inside {
+  margin-top: var(--s-9);
+  padding-top: var(--s-4);
+  border-top: 3px solid var(--rule);
+}
+
+/* Directly after the pinned chronicle: the stage has already scrolled a screen off, so no extra air. */
+main > section.avg-day {
+  margin-top: var(--s-6);
+}
+
+.inside-kicker {
+  margin: 0 0 var(--s-3);
+  font-family: var(--font-figures);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.inside .inside-head {
+  margin: 0 0 var(--s-3);
+  max-width: 22ch;
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 3.4vw, 42px);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.inside .inside-head--lead {
+  max-width: 20ch;
+  font-size: clamp(34px, 4.6vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.inside-standfirst {
+  margin: 0;
+  max-width: 58ch;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.inside-subhead {
+  margin: 0 0 var(--s-2);
+  max-width: 24ch;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.inside-note {
+  margin: 0 0 var(--s-4);
+  max-width: 46ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* An average day: key figures without a box ------------------------------- */
+.avg-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: var(--s-7);
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-figures);
+  font-variant-numeric: tabular-nums;
+}
+
+.avg-col {
+  margin: 0;
+  padding: var(--s-3) var(--s-5) var(--s-2);
+}
+
+.avg-col:first-child {
+  padding-left: 0;
+}
+
+.avg-col:last-child {
+  padding-right: 0;
+}
+
+.avg-col + .avg-col {
+  border-left: 1px solid var(--rule-soft);
+}
+
+.avg-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.avg-ratio {
+  margin: var(--s-4) 0 var(--s-1);
+  font-size: clamp(44px, 5vw, 64px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.avg-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.avg-rows {
+  display: grid;
+  gap: var(--s-3);
+  margin: var(--s-5) 0 0;
+}
+
+.avg-row {
+  display: grid;
+  grid-template-columns: 52px minmax(6ch, auto) 1fr;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 15px;
+}
+
+.avg-row dt {
+  color: var(--text-secondary);
+}
+
+.avg-row dd {
+  margin: 0;
+}
+
+.avg-value {
+  font-weight: 600;
+  text-align: right;
+}
+
+.avg-value .count-live {
+  justify-self: end;
+}
+
+.avg-track {
+  height: 6px;
+}
+
+.avg-bar {
+  display: block;
+  height: 100%;
+}
+
+/* The cache: a two-column spread ------------------------------------------- */
+.cache {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-areas:
+    'head  head'
+    'share share'
+    'table side';
+  column-gap: var(--s-6);
+}
+
+.cache-head {
+  grid-area: head;
+}
+
+.cache-share {
+  grid-area: share;
+  margin-top: var(--s-7);
+}
+
+.cache-figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-5);
+  margin: 0 0 var(--s-5);
+}
+
+.cache-figure-num {
+  font-family: var(--font-figures);
+  font-size: clamp(76px, 10vw, 128px);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cache-figure-num .count-live {
+  justify-self: end;
+}
+
+.cache-figure-caption {
+  max-width: 32ch;
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.cache-barfig {
+  position: relative;
+  margin: 0;
+  padding-top: 34px;
+  font-family: var(--font-figures);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A bracket over the slivers that are not re-reads, its label running left from the bar's end. */
+.cache-rest {
+  position: absolute;
+  top: 24px;
+  left: calc(var(--from) * 100%);
+  right: 0;
+  height: 7px;
+  border: 1px solid var(--rule);
+  border-bottom: 0;
+}
+
+.cache-rest span {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 3px);
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.cache-bar {
+  display: flex;
+  gap: 2px;
+  height: 48px;
+}
+
+.cache-seg {
+  min-width: 1px;
+  overflow: hidden;
+}
+
+.cache-seg-label {
+  display: block;
+  padding-left: var(--s-3);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--page);
+}
+
+.cache-scale {
+  position: relative;
+  height: 24px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cache-scale span {
+  position: absolute;
+  top: 8px;
+  left: calc(var(--at) * 100%);
+  transform: translateX(-50%);
+}
+
+.cache-scale span:last-child {
+  transform: translateX(-100%);
+}
+
+.cache-scale span::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 1px;
+  height: 5px;
+  background: var(--rule-soft);
+}
+
+.cache-scale span:last-child::before {
+  left: auto;
+  right: 0;
+}
+
+.cache-table {
+  grid-area: table;
+  min-width: 0;
+  margin-top: var(--s-7);
+  overflow-x: auto;
+}
+
+.cache-side {
+  grid-area: side;
+  min-width: 0;
+  margin-top: var(--s-7);
+  padding-left: var(--s-6);
+  border-left: 1px solid var(--rule-soft);
+}
+
+/* Broadsheet table: heavy rule over, hairlines between, figures right on tabular numerals */
+.inside-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 2px solid var(--rule);
+  font-family: var(--font-figures);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.inside-table th,
+.inside-table td {
+  padding: var(--s-3) var(--s-3);
+  border-bottom: 1px solid var(--rule-soft);
+  text-align: right;
+  vertical-align: baseline;
+}
+
+.inside-table :is(th, td):first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.inside-table :is(th, td):last-child {
+  padding-right: 0;
+}
+
+.inside-table thead th {
+  padding-top: var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--rule);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.inside-table tbody tr:last-child > * {
+  border-bottom: 1px solid var(--rule);
+}
+
+.inside-table tbody th {
+  font-weight: 600;
+}
+
+.kind-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.kind-key {
+  width: 10px;
+  height: 10px;
+  flex: none;
+}
+
+.kind-note {
+  display: block;
+  max-width: 34ch;
+  margin-top: 2px;
+  padding-left: 18px;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: normal;
+  color: var(--text-secondary);
+}
+
+.kind-share {
+  font-weight: 600;
+}
+
+/* The re-read line --------------------------------------------------------- */
+.rr {
+  min-width: 0;
+}
+
+.rr svg {
+  display: block;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.rr text {
+  font-family: var(--font-figures);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--muted);
+}
+
+.rr-grid line {
+  stroke: var(--rule-soft);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.rr-grid line.rr-baseline {
+  stroke: var(--rule);
+}
+
+.rr-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.rr-avg {
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.rr text.rr-label {
+  fill: var(--text-secondary);
+  /* A paper halo keeps the label legible where the line runs behind it. */
+  stroke: var(--page);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+.rr text .rr-label-plan {
+  font-weight: 600;
+  fill: var(--text-primary);
+}
+
+.inside-numbers {
+  margin-top: var(--s-3);
+}
+
+.inside .inside-numbers summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  font-family: var(--font-figures);
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: color 150ms var(--ease-out);
+}
+
+.inside .inside-numbers summary::before {
+  content: '+';
+  width: 1.2em;
+  font-weight: 600;
+}
+
+.inside .inside-numbers[open] summary::before {
+  content: '\2212';
+}
+
+.inside .inside-numbers summary::-webkit-details-marker {
+  display: none;
+}
+
+.inside .inside-numbers summary {
+  list-style: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .inside .inside-numbers summary:hover {
+    color: var(--text-primary);
+  }
+}
+
+.inside-numbers-wrap {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+/* Motion: once-only entrances keyed off data-reveal (lib/motion.ts). `done` is plain, static content. -- */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .avg-figures[data-reveal='pending'] .avg-col {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  .avg-figures[data-reveal='in'] .avg-col {
+    animation: inside-in 620ms var(--ease-out) var(--delay, 0ms) both;
+  }
+
+  .avg-figures[data-reveal='pending'] .avg-bar {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .avg-figures[data-reveal='in'] .avg-bar {
+    animation: inside-wipe 1400ms var(--ease-out) var(--delay, 0ms) both;
+  }
+
+  /* The reveal: the whole token bar is wiped in left to right while the share above it counts. */
+  .cache-share[data-reveal='pending'] .cache-bar {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .cache-share[data-reveal='in'] .cache-bar {
+    animation: inside-wipe var(--wipe) var(--ease-out) both;
+  }
+
+  .cache-share[data-reveal='pending'] .cache-rest {
+    opacity: 0;
+  }
+
+  .cache-share[data-reveal='in'] .cache-rest {
+    animation: inside-fade 360ms var(--ease-out) calc(var(--wipe) * 0.6) both;
+  }
+
+  .rr[data-reveal='pending'] .rr-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+
+  .rr[data-reveal='in'] .rr-line {
+    stroke-dasharray: 1;
+    animation: inside-draw var(--draw-ms) linear var(--draw-delay) both;
+  }
+
+  .rr[data-reveal='pending'] :is(.rr-avg, .rr-end, .rr-label) {
+    opacity: 0;
+  }
+
+  .rr[data-reveal='in'] :is(.rr-avg, .rr-end, .rr-label) {
+    animation: inside-fade 360ms var(--ease-out) var(--draw-total) both;
+  }
+}
+
+@keyframes inside-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes inside-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes inside-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes inside-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Light type on the night edition needs a touch more air. */
+:root[data-theme='dark'] .inside :is(.inside-standfirst, .inside-note, .cache-figure-caption) {
+  line-height: 1.58;
+  letter-spacing: 0.005em;
+}
+
+/* Tablet and phone: the spread stacks bar, table, chart ------------------- */
+@media (max-width: 820px) {
+  .cache {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'head'
+      'share'
+      'table'
+      'side';
+  }
+
+  .cache-side {
+    padding-left: 0;
+    padding-top: var(--s-5);
+    border-left: 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+}
+
+/* Phone: key figures become stacked rows, not three squeezed columns ------ */
+@media (max-width: 720px) {
+  main > section.inside {
+    margin-top: var(--s-8);
+  }
+
+  main > section.avg-day {
+    margin-top: var(--s-5);
+  }
+
+  .inside-standfirst {
+    font-size: 17px;
+  }
+
+  .avg-figures {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: var(--s-5);
+  }
+
+  .avg-col,
+  .avg-col:first-child,
+  .avg-col:last-child {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: var(--s-4);
+    align-items: end;
+    padding: var(--s-3) 0 var(--s-4);
+  }
+
+  .avg-col + .avg-col {
+    border-left: 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  .avg-label {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .avg-note {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .avg-ratio {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0;
+    font-size: 44px;
+  }
+
+  .avg-rows {
+    grid-column: 1 / -1;
+    margin-top: var(--s-3);
+    gap: var(--s-2);
+  }
+
+  .cache-share {
+    margin-top: var(--s-5);
+  }
+
+  .cache-figure {
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+
+  .cache-figure-num {
+    font-size: 88px;
+  }
+
+  .cache-figure-caption {
+    font-size: 17px;
+  }
+
+  .cache-bar {
+    height: 40px;
+  }
+
+  .cache-seg-label {
+    line-height: 40px;
+  }
+
+  .cache-table,
+  .cache-side {
+    margin-top: var(--s-6);
+  }
+
+  .inside-table th,
+  .inside-table td {
+    padding: var(--s-2);
+  }
+
+  .inside-table {
+    font-size: 14px;
+  }
+
+  .kind-note {
+    font-size: 13px;
+  }
+}

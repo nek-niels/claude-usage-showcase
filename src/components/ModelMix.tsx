@@ -1,75 +1,76 @@
 import type { CSSProperties } from 'react'
 import type { PlanSummary } from '../lib/aggregate'
 import { sortModels } from '../lib/aggregate'
+import { mixToDate, type ChronicleDay } from '../lib/chronicle'
 import { modelColor } from '../lib/colors'
 import { useI18n } from '../i18n'
-import { useReveal } from '../lib/motion'
-import { Legend } from './Legend'
 
+/** Below this share a model folds into "Other models" in the labels; its segment still shows. */
 const LABEL_MIN_SHARE = 0.05
-const ROW_STAGGER_MS = 140
-const SWEEP_MS = 700
-/** Labels settle in once most of their bar has opened. */
-const LABEL_DELAY_MS = 350
-const LABEL_MS = 300
 
-export function ModelMix({ plans }: { plans: PlanSummary[] }) {
-  const { t, fmtPct, fmtUsd } = useI18n()
-  const models = sortModels([...new Set(plans.flatMap((p) => p.modelMix.map((m) => m.model)))])
-  const [ref, reveal] = useReveal<HTMLDivElement>(
-    ROW_STAGGER_MS * (plans.length - 1) + Math.max(SWEEP_MS, LABEL_DELAY_MS + LABEL_MS),
-  )
+/**
+ * The sidebar "model mix to date": one stacked bar per plan, counting only the days up to the playhead.
+ * Every model the plan will ever use keeps a segment (zero-wide until it appears), so a share that grows
+ * slides its neighbours instead of popping in. Segments are clipped, not resized, so only clip-path moves.
+ */
+export function ModelMix({ days, plans, shown }: { days: ChronicleDay[]; plans: PlanSummary[]; shown: number }) {
+  const { t, fmtPct, fmtDate } = useI18n()
+  const current = days[Math.min(shown, days.length - 1)]?.plan
+
   return (
-    <section aria-labelledby="mix-title">
-      <h2 id="mix-title">{t.mix.title}</h2>
-      <p className="lede">{t.mix.lede}</p>
-      <Legend items={models.map((m) => ({ label: m, color: modelColor(m) }))} />
-      <div ref={ref} className="mix" data-reveal={reveal}>
-        {plans.map((p, i) => {
-          const segments = models
-            .map((m) => p.modelMix.find((x) => x.model === m))
-            .filter((x): x is NonNullable<typeof x> => !!x)
-          const small = segments.filter((s) => s.share < LABEL_MIN_SHARE)
-          return (
+    <div className="rc-mix">
+      <h3 className="rc-label">{t.mix.title}</h3>
+      {plans.map((p) => {
+        const models = sortModels(p.modelMix.map((m) => m.model))
+        const { total, shares } = mixToDate(days, p.plan.id, shown)
+        const share = (m: string) => shares.find((s) => s.model === m)?.share ?? 0
+        let x = 0
+        const segments = models.map((m) => {
+          const from = x
+          x += share(m)
+          return { model: m, from, to: x }
+        })
+        const ranked = [...shares].sort((a, b) => b.share - a.share)
+        const labelled = ranked.filter((s) => s.share >= LABEL_MIN_SHARE)
+        const other = ranked.filter((s) => s.share < LABEL_MIN_SHARE).reduce((a, s) => a + s.share, 0)
+        return (
+          <div className="rc-mixrow" key={p.plan.id} data-current={p.plan.id === current}>
+            <span className="rc-mixplan">{p.plan.name}</span>
             <div
-              className="mix-row"
-              key={p.plan.id}
-              style={{ '--delay': `${i * ROW_STAGGER_MS}ms`, '--label-delay': `${i * ROW_STAGGER_MS + LABEL_DELAY_MS}ms` } as CSSProperties}
+              className="rc-mixbar"
+              role="img"
+              aria-label={total ? labelled.map((s) => `${s.model} ${fmtPct(s.share)}`).join(', ') : t.mix.notYet(fmtDate(p.from))}
             >
-              <span className="mix-plan">{p.plan.name}</span>
-              <div
-                className="mix-bar"
-                role="img"
-                aria-label={segments.map((s) => `${s.model} ${fmtPct(s.share)}`).join(', ')}
-              >
-                {segments.map((s) => (
-                  <div
-                    key={s.model}
-                    className="mix-seg"
-                    style={{ flexGrow: s.share, background: modelColor(s.model) }}
-                    title={`${s.model}: ${fmtPct(s.share)} (${fmtUsd(s.cost, 2)})`}
-                  />
-                ))}
-              </div>
-              <ul className="mix-labels">
-                {segments
-                  .filter((s) => s.share >= LABEL_MIN_SHARE)
-                  .map((s) => (
-                    <li key={s.model}>
-                      <span className="swatch" style={{ background: modelColor(s.model) }} />
-                      {s.model} <strong>{fmtPct(s.share)}</strong>
-                    </li>
-                  ))}
-                {small.length > 0 && (
-                  <li className="muted">
-                    {t.mix.other} {fmtPct(small.reduce((x, s) => x + s.share, 0))}
-                  </li>
-                )}
-              </ul>
+              {segments.map((s) => (
+                <div
+                  key={s.model}
+                  className="rc-mixseg"
+                  style={{ '--from': s.from, '--to': s.to, background: modelColor(s.model) } as CSSProperties}
+                />
+              ))}
             </div>
-          )
-        })}
-      </div>
-    </section>
+            <p className="rc-mixlabels">
+              {total === 0 ? (
+                <span className="rc-mixwait">{t.mix.notYet(fmtDate(p.from))}</span>
+              ) : (
+                <>
+                  {labelled.map((s) => (
+                    <span key={s.model}>
+                      <i className="swatch" style={{ background: modelColor(s.model) }} />
+                      {s.model} <b>{fmtPct(s.share)}</b>
+                    </span>
+                  ))}
+                  {other > 0.0005 && (
+                    <span className="rc-mixother">
+                      {t.mix.other} <b>{fmtPct(other)}</b>
+                    </span>
+                  )}
+                </>
+              )}
+            </p>
+          </div>
+        )
+      })}
+    </div>
   )
 }

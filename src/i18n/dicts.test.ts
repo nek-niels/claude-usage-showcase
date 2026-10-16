@@ -32,7 +32,7 @@ describe('dictionaries', () => {
 
   it('templated entries use every argument they are given', () => {
     expect(da.hero.headline('Max 5x', '2,3×', 'Pro')).toBe(
-      'På Max 5x får jeg lavet 2,3× så meget arbejde med Claude Code om dagen som på Pro.',
+      'Max 5x giver mig 2,3× så meget Claude Code-arbejde om dagen som Pro',
     )
     expect(da.compare.periodValue('1. sep.', '22. sep.', 22)).toBe('1. sep. til 22. sep. (22 dage)')
   })
