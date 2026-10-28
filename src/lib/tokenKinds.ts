@@ -11,3 +11,7 @@ export const TOKEN_KINDS: { key: keyof TokenCounts; kind: TokenKind; fill: strin
 ]
 
 export const tokenTotal = (t: TokenCounts) => TOKEN_KINDS.reduce((a, k) => a + t[k.key], 0)
+
+/** Just the token counts of a row, kind by kind; all 0 without one (a day off). */
+export const tokenCounts = (row?: TokenCounts): TokenCounts =>
+  Object.fromEntries(TOKEN_KINDS.map((k) => [k.key, row?.[k.key] ?? 0])) as Record<keyof TokenCounts, number>

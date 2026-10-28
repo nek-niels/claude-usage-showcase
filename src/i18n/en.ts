@@ -58,11 +58,17 @@ export const en = {
   },
   daily: {
     title: 'The record, day by day',
-    lede: 'API-equivalent usage per calendar day, stacked by model. A dot on the baseline marks a day without a session.',
-    ledeTokens: 'Tokens per calendar day, stacked by kind. A dot on the baseline marks a day without a session.',
     unitLabel: 'Show as',
-    unitCost: 'API equivalent',
-    unitTokens: 'Tokens',
+    units: {
+      cost: {
+        name: 'API equivalent',
+        lede: 'API-equivalent usage per calendar day, stacked by model. A dot on the baseline marks a day without a session.',
+      },
+      tokens: {
+        name: 'Tokens',
+        lede: 'Tokens per calendar day, stacked by kind. A dot on the baseline marks a day without a session.',
+      },
+    },
     onPlan: (plan: string) => `On ${plan}`,
     total: 'Total',
     date: 'Date',

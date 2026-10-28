@@ -45,7 +45,7 @@ export function DailyChart({ days, measure, switchIdx, plans, shown }: Props) {
 
   return (
     <figure className="rc-chart" data-zoomed={zoomed} data-unit={measure.unit}>
-      <figcaption className="visually-hidden">{measure.lede}</figcaption>
+      <figcaption className="visually-hidden">{t.daily.units[measure.unit].lede}</figcaption>
       <div
         // A change of unit redraws the plot outright, rather than gliding the ticks between unrelated scales.
         key={measure.unit}

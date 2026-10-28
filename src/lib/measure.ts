@@ -1,8 +1,7 @@
-import type { Dict } from '../i18n/en'
 import { chartScale, type ChartScale, type ChronicleDay, type Story } from './chronicle'
 import { modelColor } from './colors'
 import type { Formatters } from './format'
-import { TOKEN_KINDS, tokenTotal } from './tokenKinds'
+import { TOKEN_KINDS, tokenTotal, type TokenKind } from './tokenKinds'
 import type { TokenCounts } from './usage'
 
 /** What the record measures a day in: API-equivalent cost by model, or tokens by kind. */
@@ -23,10 +22,6 @@ export interface Part<K extends string = string> {
 /** Everything the record needs to draw, read and tabulate a day in one unit. */
 export interface Measure<K extends string = string> {
   unit: Unit
-  /** The unit's name on the switch. */
-  label: string
-  /** The chart's caption for screen readers. */
-  lede: string
   /** Every part the unit can stack, bottom first: the legend and the table's columns. */
   series: Omit<Part<K>, 'value'>[]
   scale: ChartScale
@@ -39,9 +34,12 @@ export interface Measure<K extends string = string> {
   fmt: (n: number, digits?: number) => string
 }
 
-/** Both units for one language. Cost reads the story's own scale; tokens get theirs, with the same switch day. */
+/** How one language writes the parts: its number formats, and its name for each token kind. */
+export type Wording = Pick<Formatters, 'fmtUsd' | 'fmtTokens'> & { kindNames: Record<TokenKind, string> }
+
+/** Both units in one wording. Cost reads the story's own scale; tokens get theirs, with the same switch day. */
 export function measures(
-  { t, fmtUsd, fmtTokens }: { t: Dict } & Formatters,
+  { fmtUsd, fmtTokens, kindNames }: Wording,
   days: ChronicleDay[],
   models: string[],
   s: Story,
@@ -57,8 +55,6 @@ export function measures(
   return {
     cost: build({
       unit: 'cost',
-      label: t.daily.unitCost,
-      lede: t.daily.lede,
       series: models.map((m) => ({ key: m, label: m, color: modelColor(m) })),
       scale: s,
       total: (d) => d.cost,
@@ -67,9 +63,7 @@ export function measures(
     }),
     tokens: build({
       unit: 'tokens',
-      label: t.daily.unitTokens,
-      lede: t.daily.ledeTokens,
-      series: TOKEN_KINDS.map((k) => ({ key: k.key, label: t.tokens[k.kind], color: k.fill })),
+      series: TOKEN_KINDS.map((k) => ({ key: k.key, label: kindNames[k.kind], color: k.fill })),
       scale: chartScale(days.map((d) => tokenTotal(d.tokens)), s.switchIdx),
       total: (d) => tokenTotal(d.tokens),
       value: (d, key) => d.tokens[key],

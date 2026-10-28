@@ -1,5 +1,6 @@
 import type { Plan, PlanId } from '../config/plans'
 import { assignPlan, proratedPrice } from './aggregate'
+import { tokenCounts } from './tokenKinds'
 import type { DailyUsage, TokenCounts } from './usage'
 
 const DAY_MS = 86_400_000
@@ -36,12 +37,7 @@ export function ledger(plans: Plan[], daily: DailyUsage[]): LedgerDay[] {
     const plan = assignPlan(plans, date)
     const row = byDate.get(date)
     const cost = row?.totalCost ?? 0
-    const tokens = {
-      inputTokens: row?.inputTokens ?? 0,
-      outputTokens: row?.outputTokens ?? 0,
-      cacheCreationTokens: row?.cacheCreationTokens ?? 0,
-      cacheReadTokens: row?.cacheReadTokens ?? 0,
-    }
+    const tokens = tokenCounts(row)
     cumCost += cost
     cumPaid += proratedPrice(plans.find((p) => p.id === plan)!, 1)
     days.push({ date, plan, active: !!row, cost, tokens, cumCost, cumPaid })

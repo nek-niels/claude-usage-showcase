@@ -59,11 +59,17 @@ export const da: Dict = {
   },
   daily: {
     title: 'Forløbet, dag for dag',
-    lede: 'Forbrug i API-priser pr. kalenderdag, fordelt på model. En prik på grundlinjen markerer en dag uden session.',
-    ledeTokens: 'Tokens pr. kalenderdag, fordelt på slags. En prik på grundlinjen markerer en dag uden session.',
     unitLabel: 'Vis som',
-    unitCost: 'API-pris',
-    unitTokens: 'Antal tokens',
+    units: {
+      cost: {
+        name: 'API-pris',
+        lede: 'Forbrug i API-priser pr. kalenderdag, fordelt på model. En prik på grundlinjen markerer en dag uden session.',
+      },
+      tokens: {
+        name: 'Antal tokens',
+        lede: 'Tokens pr. kalenderdag, fordelt på slags. En prik på grundlinjen markerer en dag uden session.',
+      },
+    },
     onPlan: (plan) => `På ${plan}`,
     total: 'I alt',
     date: 'Dato',

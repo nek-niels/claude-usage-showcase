@@ -60,7 +60,10 @@ export function Chronicle({ rows, models, plans, days }: Props) {
   const cdays = useMemo(() => chronicleDays(days, rows, models), [days, rows, models])
   const s = useMemo(() => story(PLANS, days), [days])
   // The scroll and the copy always follow the cost story; the unit only changes what the chart measures.
-  const ms = useMemo(() => measures(i18n, cdays, models, s), [i18n, cdays, models, s])
+  const ms = useMemo(
+    () => measures({ fmtUsd: i18n.fmtUsd, fmtTokens: i18n.fmtTokens, kindNames: i18n.t.tokens }, cdays, models, s),
+    [i18n, cdays, models, s],
+  )
   const [unit, setUnit] = useState<Unit>('cost')
   const measure = ms[unit]
   const map = useMemo(() => scrollMap(dayWeights(s, days.length)), [s, days.length])
@@ -165,7 +168,7 @@ export function Chronicle({ rows, models, plans, days }: Props) {
               <div className="rc-unit switch" role="group" aria-label={t.daily.unitLabel}>
                 {UNITS.map((u) => (
                   <button key={u} type="button" aria-pressed={unit === u} onClick={() => setUnit(u)}>
-                    <span>{ms[u].label}</span>
+                    <span>{t.daily.units[u].name}</span>
                   </button>
                 ))}
               </div>

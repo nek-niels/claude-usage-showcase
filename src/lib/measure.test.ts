@@ -13,7 +13,7 @@ const days = ledger(PLANS, usage.daily)
 const { rows, models } = dailySeries(PLANS, usage.daily)
 const cdays = chronicleDays(days, rows, models)
 const s = story(PLANS, days)
-const ms = measures({ t: en, ...formatters('en-US') }, cdays, models, s)
+const ms = measures({ ...formatters('en-US'), kindNames: en.tokens }, cdays, models, s)
 
 describe('measures', () => {
   it('stack each active day into parts that sum to its total, and leave days off empty', () => {
