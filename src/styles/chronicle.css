@@ -1,7 +1,9 @@
 /* The record: the pinned chronicle -------------------------------------------------------------------------
  * A tall wrapper with a sticky stage under the tape. Scroll through the wrapper is the calendar (see
- * Chronicle.tsx); everything here is keyed off data attributes the scroll writes, and only transform,
- * opacity and clip-path ever move. data-still lays the whole story flat and finished.
+ * Chronicle.tsx); everything the scroll drives is keyed off data attributes it writes, and only transform,
+ * opacity and clip-path ever move. Two things answer a click instead: data-unit on the chart, which redraws it
+ * in cost or tokens without motion, and the unit switch, whose labels ease their colour like every .switch
+ * (see styles.css). data-still lays the whole story flat and finished.
  */
 
 .record {

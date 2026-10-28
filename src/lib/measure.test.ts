@@ -36,10 +36,18 @@ describe('measures', () => {
       }
   })
 
-  it('read 0 for a part a day does not have', () => {
+  it('give every day a cell per series part, 0 where the day has none of it', () => {
     const off = cdays.find((d) => !d.active)!
-    expect(ms.cost.value(off, models[0])).toBe(0)
-    expect(ms.tokens.value(off, 'outputTokens')).toBe(0)
+    for (const u of UNITS) {
+      expect(ms[u].cells(off).map((c) => c.key)).toEqual(ms[u].series.map((p) => p.key))
+      expect(ms[u].cells(off).every((c) => c.value === 0)).toBe(true)
+    }
+  })
+
+  it('name token parts by their field, so a misspelt one does not compile', () => {
+    // @ts-expect-error 'outputToken' is not a token field; `npm run build` type-checks this file.
+    const typo: (typeof ms.tokens.series)[number]['key'] = 'outputToken'
+    expect(ms.tokens.series.map((p) => p.key)).not.toContain(typo)
   })
 
   it('keep the story scale for cost, and give tokens their own with the same switch day', () => {

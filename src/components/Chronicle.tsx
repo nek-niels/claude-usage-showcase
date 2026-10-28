@@ -214,10 +214,9 @@ export function Chronicle({ rows, models, plans, days }: Props) {
                 .map((d) => (
                   <tr key={d.date}>
                     <th scope="row">{fmtDate(d.date, { weekday: 'short', month: 'short', day: 'numeric' })}</th>
-                    {measure.series.map((p) => {
-                      const v = measure.value(d, p.key)
-                      return <td key={p.key}>{v ? measure.fmt(v, 2) : '–'}</td>
-                    })}
+                    {measure.cells(d).map((c) => (
+                      <td key={c.key}>{c.value ? measure.fmt(c.value, 2) : '–'}</td>
+                    ))}
                     <td>{measure.fmt(measure.total(d), 2)}</td>
                   </tr>
                 ))}
