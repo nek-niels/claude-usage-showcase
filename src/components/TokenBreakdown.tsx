@@ -1,19 +1,9 @@
 import type { CSSProperties } from 'react'
 import type { PlanSummary } from '../lib/aggregate'
-import type { TokenCounts } from '../lib/usage'
 import { useI18n } from '../i18n'
 import { useReveal } from '../lib/motion'
+import { TOKEN_KINDS as KINDS } from '../lib/tokenKinds'
 import { CountUp } from './CountUp'
-
-type Kind = 'cacheRead' | 'cacheCreation' | 'output' | 'input'
-
-/** Bar order is table order. Ink for the re-reads, then lighter tints for the slivers that are left. */
-const KINDS: { key: keyof TokenCounts; kind: Kind; fill: string }[] = [
-  { key: 'cacheReadTokens', kind: 'cacheRead', fill: 'var(--text-primary)' },
-  { key: 'cacheCreationTokens', kind: 'cacheCreation', fill: 'var(--muted)' },
-  { key: 'outputTokens', kind: 'output', fill: 'var(--axis)' },
-  { key: 'inputTokens', kind: 'input', fill: 'var(--text-secondary)' },
-]
 
 /** The bar starts at zero by construction, so the scale only marks the quarters. */
 const SCALE = [0.25, 0.5, 0.75, 1]

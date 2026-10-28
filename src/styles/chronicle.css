@@ -57,6 +57,54 @@
   border-bottom: 1px solid var(--rule-soft);
 }
 
+.rc-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
+}
+
+/* Cost or tokens: two words in the label face, the one in force underlined, like the language switch. */
+.rc-unit {
+  display: flex;
+}
+
+.rc-unit button {
+  min-height: 30px;
+  padding: 0 8px;
+  font-family: var(--font-figures);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.rc-unit button + button {
+  border-left: 1px solid var(--rule-soft);
+}
+
+.rc-unit button[aria-pressed='true'] {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
+.rc-unit button:active {
+  transform: translateY(1px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rc-unit button:hover {
+    color: var(--text-primary);
+  }
+}
+
 .record .legend {
   margin: 0;
   gap: 2px 16px;
@@ -159,6 +207,11 @@
   flex: 1 1 auto;
   min-height: 0;
   margin: var(--headroom) 0 0 var(--axis-w);
+}
+
+/* Danish token ticks read "400 mio.", wider than any amount. */
+.rc-chart[data-unit='tokens']:lang(da) {
+  --axis-w: 64px;
 }
 
 /* The baseline is the one heavy horizontal in the plot. */
@@ -608,6 +661,14 @@
 
   .rc-head {
     margin-bottom: var(--s-3);
+  }
+
+  .rc-chart[data-unit='tokens']:lang(da) {
+    --axis-w: 56px;
+  }
+
+  .rc-unit button {
+    min-height: 36px;
   }
 
   .record .legend {

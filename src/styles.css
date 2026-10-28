@@ -31,6 +31,13 @@
   --model-6: #008300;
   --model-7: #b844bd;
 
+  /* Token kinds: one ink ramp that fades up the stack (cache read, cache write, uncached input), every step clearing
+     3:1 on the paper, and the claret for the tokens Claude wrote. */
+  --kind-cache-read: #1b1612;
+  --kind-cache-creation: #6b5d52;
+  --kind-input: #958273;
+  --kind-output: var(--stop-press);
+
   /* Two families: a news serif for voice and prose, a condensed grotesk for figures, labels and the tape. */
   --font-serif: 'Newsreader', 'Iowan Old Style', Georgia, serif;
   --font-figures: 'IBM Plex Sans Condensed', 'Arial Narrow', system-ui, sans-serif;
@@ -82,6 +89,10 @@
   --model-5: #f0574e;
   --model-6: #417302;
   --model-7: #ac31a1;
+
+  --kind-cache-read: #f4e6d8;
+  --kind-cache-creation: #a8988a;
+  --kind-input: #76685c;
 }
 
 /* Base -------------------------------------------------------------------- */

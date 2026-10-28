@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { PLANS } from '../config/plans'
 import { daysBetween, summarizePlans } from './aggregate'
 import { ledger } from './ledger'
-import { usage } from './usage'
+import { usage, type TokenCounts } from './usage'
 
 const days = ledger(PLANS, usage.daily)
 const dates = usage.daily.map((d) => d.date).sort()
@@ -19,6 +19,15 @@ describe('ledger', () => {
     expect(last.cumCost).toBeCloseTo(usage.totals.totalCost, 6)
     const paid = summarizePlans(PLANS, usage.daily).reduce((a, s) => a + s.proratedPrice, 0)
     expect(last.cumPaid).toBeCloseTo(paid, 6)
+  })
+
+  it('carries the tokens of each day, summing to the export totals', () => {
+    const sum = (k: keyof TokenCounts) => days.reduce((a, d) => a + d.tokens[k], 0)
+    expect(sum('cacheReadTokens')).toBe(usage.totals.cacheReadTokens)
+    expect(sum('cacheCreationTokens')).toBe(usage.totals.cacheCreationTokens)
+    expect(sum('inputTokens')).toBe(usage.totals.inputTokens)
+    expect(sum('outputTokens')).toBe(usage.totals.outputTokens)
+    expect(days.filter((d) => !d.active).every((d) => d.tokens.cacheReadTokens === 0)).toBe(true)
   })
 
   it('switches plan on the plan start date', () => {
