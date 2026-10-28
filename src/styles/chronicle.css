@@ -1,7 +1,9 @@
 /* The record: the pinned chronicle -------------------------------------------------------------------------
  * A tall wrapper with a sticky stage under the tape. Scroll through the wrapper is the calendar (see
- * Chronicle.tsx); everything here is keyed off data attributes the scroll writes, and only transform,
- * opacity and clip-path ever move. data-still lays the whole story flat and finished.
+ * Chronicle.tsx); everything the scroll drives is keyed off data attributes it writes, and only transform,
+ * opacity and clip-path ever move. Two things answer a click instead: data-unit on the chart, which redraws it
+ * in cost or tokens without motion, and the unit switch, whose labels ease their colour like every .switch
+ * (see styles.css). data-still lays the whole story flat and finished.
  */
 
 .record {
@@ -55,6 +57,13 @@
   padding-bottom: var(--s-2);
   margin-bottom: var(--s-5);
   border-bottom: 1px solid var(--rule-soft);
+}
+
+.rc-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-4);
 }
 
 .record .legend {
@@ -159,6 +168,11 @@
   flex: 1 1 auto;
   min-height: 0;
   margin: var(--headroom) 0 0 var(--axis-w);
+}
+
+/* Danish token ticks read "400 mio.", wider than any amount. */
+.rc-chart[data-unit='tokens']:lang(da) {
+  --axis-w: 64px;
 }
 
 /* The baseline is the one heavy horizontal in the plot. */
@@ -608,6 +622,14 @@
 
   .rc-head {
     margin-bottom: var(--s-3);
+  }
+
+  .rc-chart[data-unit='tokens']:lang(da) {
+    --axis-w: 56px;
+  }
+
+  .rc-unit button {
+    min-height: 36px;
   }
 
   .record .legend {

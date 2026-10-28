@@ -34,7 +34,7 @@ const OPTIONS: Record<Lang, { name: string; code: string; Flag: ComponentType }>
 export function LanguageSwitch() {
   const { lang, setLang, t } = useI18n()
   return (
-    <div className="mast-lang" role="group" aria-label={t.topbar.language}>
+    <div className="mast-lang switch" role="group" aria-label={t.topbar.language}>
       {LANGS.map((l) => {
         const { name, code, Flag } = OPTIONS[l]
         return (

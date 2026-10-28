@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { PLANS } from '../config/plans'
 import { dailySeries } from './aggregate'
-import { chapterAt, chapterRanges, chronicleDays, dayWeights, mixToDate, niceScale, scrollMap, story } from './chronicle'
+import {
+  chapterAt,
+  chapterRanges,
+  chartScale,
+  chronicleDays,
+  dayWeights,
+  mixToDate,
+  niceScale,
+  scrollMap,
+  story,
+} from './chronicle'
 import { ledger } from './ledger'
+import { tokenTotal } from './tokenKinds'
 import { usage } from './usage'
 
 const days = ledger(PLANS, usage.daily)
@@ -30,12 +41,33 @@ describe('story', () => {
 
   it('takes the record from the first plan only, and rescales once a bar no longer fits', () => {
     const pro = days.filter((d) => d.plan === PLANS[0].id)
-    expect(s.record.cost).toBe(Math.max(...pro.map((d) => d.cost)))
-    expect(s.before.max).toBeGreaterThanOrEqual(s.record.cost)
+    expect(s.record.value).toBe(Math.max(...pro.map((d) => d.cost)))
+    expect(s.before.max).toBeGreaterThanOrEqual(s.record.value)
     expect(s.rescaleIdx).toBeGreaterThanOrEqual(s.switchIdx)
     expect(days[s.rescaleIdx].cost).toBeGreaterThan(s.before.max)
     expect(days.slice(0, s.rescaleIdx).every((d) => d.cost <= s.before.max)).toBe(true)
     expect(s.after.max).toBeGreaterThanOrEqual(Math.max(...days.map((d) => d.cost)))
+  })
+})
+
+describe('chartScale', () => {
+  it('is the story scale when given the costs', () => {
+    const { record, before, after, rescaleIdx } = s
+    expect(chartScale(days.map((d) => d.cost), s.switchIdx)).toEqual({ record, before, after, rescaleIdx })
+  })
+
+  it('holds every day of tokens, with the record taken from the first plan', () => {
+    const tokens = days.map((d) => tokenTotal(d.tokens))
+    const sc = chartScale(tokens, s.switchIdx)
+    expect(sc.record.value).toBe(Math.max(...tokens.slice(0, s.switchIdx)))
+    expect(sc.after.max).toBeGreaterThanOrEqual(Math.max(...tokens))
+    expect(tokens.slice(0, Math.max(0, sc.rescaleIdx)).every((v) => v <= sc.before.max)).toBe(true)
+  })
+
+  it('keeps one axis when nothing outgrows the first plan', () => {
+    const sc = chartScale([1, 3, 2, 2.5], 2)
+    expect(sc.rescaleIdx).toBe(-1)
+    expect(sc.after).toEqual(sc.before)
   })
 })
 

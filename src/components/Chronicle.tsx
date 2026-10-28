@@ -4,6 +4,7 @@ import type { DailyRow, PlanSummary } from '../lib/aggregate'
 import { chapterAt, chapterRanges, chronicleDays, dayWeights, scrollMap, story, type ChapterId } from '../lib/chronicle'
 import { modelColor } from '../lib/colors'
 import type { LedgerDay } from '../lib/ledger'
+import { measures, UNITS, type Unit } from '../lib/measure'
 import { registerJump, setPlayhead } from '../lib/playhead'
 import { useI18n } from '../i18n'
 import { DailyChart } from './DailyChart'
@@ -54,9 +55,17 @@ function tapeOffset(stage: HTMLElement) {
  * tape follows through the playhead store. Reduced motion and print lay it flat and fully printed.
  */
 export function Chronicle({ rows, models, plans, days }: Props) {
-  const { t, fmtUsd, fmtDate, fmtPct } = useI18n()
+  const i18n = useI18n()
+  const { t, fmtUsd, fmtDate, fmtPct } = i18n
   const cdays = useMemo(() => chronicleDays(days, rows, models), [days, rows, models])
   const s = useMemo(() => story(PLANS, days), [days])
+  // The scroll and the copy always follow the cost story; the unit only changes what the chart measures.
+  const ms = useMemo(
+    () => measures({ fmtUsd: i18n.fmtUsd, fmtTokens: i18n.fmtTokens, kindNames: i18n.t.tokens }, cdays, models, s),
+    [i18n, cdays, models, s],
+  )
+  const [unit, setUnit] = useState<Unit>('cost')
+  const measure = ms[unit]
   const map = useMemo(() => scrollMap(dayWeights(s, days.length)), [s, days.length])
   const last = days.length - 1
   const still = useStill()
@@ -113,7 +122,7 @@ export function Chronicle({ rows, models, plans, days }: Props) {
   const base = plans[0]
   const upgrade = plans[1]
   const switchDate = days[s.switchIdx]?.date
-  const record = fmtUsd(s.record.cost)
+  const record = fmtUsd(s.record.value)
   const top = (p: PlanSummary | undefined) => p?.modelMix[0]
 
   const copy: Record<ChapterId, { kicker?: string; headline: string; body: string; note?: ReactNode }> = {
@@ -152,10 +161,19 @@ export function Chronicle({ rows, models, plans, days }: Props) {
         {/* The verification harness reads this to tell a printing chart from dead scroll. */}
         <div className="rc-stage" ref={stageRef} data-sc-stage data-sc-verify-state={`day ${shown} ${active}`}>
           <header className="rc-head">
-            <h2 id="record-title" className="rc-label">
-              {t.daily.title}
-            </h2>
-            <Legend items={models.map((m) => ({ label: m, color: modelColor(m) }))} />
+            <div className="rc-title">
+              <h2 id="record-title" className="rc-label">
+                {t.daily.title}
+              </h2>
+              <div className="rc-unit switch" role="group" aria-label={t.daily.unitLabel}>
+                {UNITS.map((u) => (
+                  <button key={u} type="button" aria-pressed={unit === u} onClick={() => setUnit(u)}>
+                    <span>{t.daily.units[u].name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Legend items={measure.series} />
           </header>
 
           <div className="rc-copy">
@@ -173,7 +191,7 @@ export function Chronicle({ rows, models, plans, days }: Props) {
             })}
           </div>
 
-          <DailyChart days={cdays} story={s} plans={PLANS} shown={shown} />
+          <DailyChart days={cdays} measure={measure} switchIdx={s.switchIdx} plans={PLANS} shown={shown} />
           <ModelMix days={cdays} plans={plans} shown={shown} />
         </div>
       </div>
@@ -185,24 +203,26 @@ export function Chronicle({ rows, models, plans, days }: Props) {
             <thead>
               <tr>
                 <th scope="col">{t.daily.date}</th>
-                {models.map((m) => (
-                  <th scope="col" key={m}>
-                    {m}
+                {measure.series.map((p) => (
+                  <th scope="col" key={p.key}>
+                    {p.label}
                   </th>
                 ))}
                 <th scope="col">{t.daily.total}</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.date}>
-                  <th scope="row">{fmtDate(r.date, { weekday: 'short', month: 'short', day: 'numeric' })}</th>
-                  {models.map((m) => (
-                    <td key={m}>{r[m] ? fmtUsd(r[m] as number, 2) : '–'}</td>
-                  ))}
-                  <td>{fmtUsd(r.total, 2)}</td>
-                </tr>
-              ))}
+              {cdays
+                .filter((d) => d.active)
+                .map((d) => (
+                  <tr key={d.date}>
+                    <th scope="row">{fmtDate(d.date, { weekday: 'short', month: 'short', day: 'numeric' })}</th>
+                    {measure.cells(d).map((c) => (
+                      <td key={c.key}>{c.value ? measure.fmt(c.value, 2) : '–'}</td>
+                    ))}
+                    <td>{measure.fmt(measure.total(d), 2)}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

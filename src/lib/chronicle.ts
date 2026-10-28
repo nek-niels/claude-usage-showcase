@@ -39,20 +39,35 @@ const DWELL_AFTER = 3
 /** The dwell never runs longer than this many days past the switch, however late the record falls. */
 const DWELL_MAX = 7
 
-export interface Story {
+/** The axis a chart of daily values needs: the first plan's record, its axis, and the axis for the whole period. */
+export interface ChartScale {
+  /** The highest daily value on the first plan, and the day it was set. */
+  record: { value: number; idx: number }
+  /** The axis while every bar fits under the first plan's scale, and the axis for the whole period. */
+  before: ReturnType<typeof niceScale>
+  after: ReturnType<typeof niceScale>
+  /** The first day whose bar does not fit the first plan's axis, so the chart has to zoom out; -1 if never. */
+  rescaleIdx: number
+}
+
+export function chartScale(values: number[], switchIdx: number): ChartScale {
+  let record = { value: 0, idx: 0 }
+  values.slice(0, switchIdx).forEach((v, idx) => {
+    if (v > record.value) record = { value: v, idx }
+  })
+  const before = niceScale(record.value)
+  const rescaleIdx = values.findIndex((v) => v > before.max)
+  const after = rescaleIdx < 0 ? before : niceScale(Math.max(0, ...values))
+  return { record, before, after, rescaleIdx }
+}
+
+export interface Story extends ChartScale {
   /** Index of the first day on the upgraded plan, or `days.length` if the data has not reached it. */
   switchIdx: number
   /** First day of the quiet stretch before the switch. */
   lullStart: number
   /** Last day of the peak dwell (inclusive). */
   dwellEnd: number
-  /** The highest daily cost on the first plan, and the day it was set. */
-  record: { cost: number; idx: number }
-  /** The axis while every bar fits under the first plan's scale, and the axis for the whole period. */
-  before: ReturnType<typeof niceScale>
-  after: ReturnType<typeof niceScale>
-  /** The first day whose bar does not fit the first plan's axis, so the chart has to zoom out; -1 if never. */
-  rescaleIdx: number
 }
 
 /** The beats of the chronicle, computed from the plans and the data so they move as usage.json grows. */
@@ -62,18 +77,12 @@ export function story(plans: Plan[], days: LedgerDay[]): Story {
   const found = upgrade ? days.findIndex((d) => d.date >= upgrade.start) : -1
   const switchIdx = found < 0 ? n : found
 
-  let record = { cost: 0, idx: 0 }
-  days.slice(0, switchIdx).forEach((d, idx) => {
-    if (d.cost > record.cost) record = { cost: d.cost, idx }
-  })
-  const overall = days.reduce((m, d) => Math.max(m, d.cost), 0)
-  const before = niceScale(record.cost)
-  const after = niceScale(overall)
-  const rescaleIdx = days.findIndex((d) => d.cost > before.max)
+  const scale = chartScale(days.map((d) => d.cost), switchIdx)
+  const { rescaleIdx } = scale
 
   const lullStart = Math.max(1, switchIdx - LULL_DAYS)
   const dwellEnd = Math.min(n - 1, switchIdx + Math.max(DWELL_AFTER, Math.min(DWELL_MAX, rescaleIdx - switchIdx + 1)))
-  return { switchIdx, lullStart, dwellEnd, record, before, after: rescaleIdx < 0 ? before : after, rescaleIdx }
+  return { switchIdx, lullStart, dwellEnd, ...scale }
 }
 
 export function chapterAt(s: Story, day: number): ChapterId {

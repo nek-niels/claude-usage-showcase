@@ -1,19 +1,9 @@
 import type { CSSProperties } from 'react'
 import type { PlanSummary } from '../lib/aggregate'
-import type { TokenCounts } from '../lib/usage'
 import { useI18n } from '../i18n'
 import { useReveal } from '../lib/motion'
+import { TOKEN_KINDS } from '../lib/tokenKinds'
 import { CountUp } from './CountUp'
-
-type Kind = 'cacheRead' | 'cacheCreation' | 'output' | 'input'
-
-/** Bar order is table order. Ink for the re-reads, then lighter tints for the slivers that are left. */
-const KINDS: { key: keyof TokenCounts; kind: Kind; fill: string }[] = [
-  { key: 'cacheReadTokens', kind: 'cacheRead', fill: 'var(--text-primary)' },
-  { key: 'cacheCreationTokens', kind: 'cacheCreation', fill: 'var(--muted)' },
-  { key: 'outputTokens', kind: 'output', fill: 'var(--axis)' },
-  { key: 'inputTokens', kind: 'input', fill: 'var(--text-secondary)' },
-]
 
 /** The bar starts at zero by construction, so the scale only marks the quarters. */
 const SCALE = [0.25, 0.5, 0.75, 1]
@@ -28,7 +18,7 @@ const WIPE_MS = 1400
 export function TokenBreakdown({ plans }: { plans: PlanSummary[] }) {
   const { t, fmtPct, fmtTokens } = useI18n()
   const all = plans.reduce((a, p) => a + p.totalTokens, 0)
-  const totals = KINDS.map((k) => ({ ...k, total: plans.reduce((a, p) => a + p.tokens[k.key], 0) }))
+  const totals = TOKEN_KINDS.map((k) => ({ ...k, total: plans.reduce((a, p) => a + p.tokens[k.key], 0) }))
   const cacheShare = totals[0].total / all
   const [ref, reveal] = useReveal<HTMLDivElement>(WIPE_MS + 400)
   // A share too small to show at one decimal reads as "<0.1%", never as a false 0.0%.

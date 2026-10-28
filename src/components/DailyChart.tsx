@@ -1,12 +1,15 @@
 import { useState, type CSSProperties, type PointerEvent } from 'react'
 import type { Plan } from '../config/plans'
-import type { ChronicleDay, Story } from '../lib/chronicle'
-import { modelColor } from '../lib/colors'
+import type { ChronicleDay } from '../lib/chronicle'
+import type { Measure } from '../lib/measure'
 import { useI18n } from '../i18n'
 
 interface Props {
   days: ChronicleDay[]
-  story: Story
+  /** The unit on show: its scale, its parts and how its numbers read. */
+  measure: Measure
+  /** Index of the first day on the upgraded plan, where the stop press runs. */
+  switchIdx: number
   plans: Plan[]
   /** Index of the last printed day. */
   shown: number
@@ -16,16 +19,17 @@ interface Props {
 const isMonday = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay() === 1
 
 /**
- * The record as a finance-page column chart: one slot per calendar day, stacked by model. Bars are drawn
- * against the full-period axis and the whole bar layer is stretched by `--zoom` while the first plan's axis
+ * The record as a finance-page column chart: one slot per calendar day, stacked by the measure's parts. Bars are
+ * drawn against the full-period axis and the whole bar layer is stretched by `--zoom` while the first plan's axis
  * still holds, so the zoom-out at the peak is one transform on one layer, not a re-layout of every bar.
  */
-export function DailyChart({ days, story: s, plans, shown }: Props) {
-  const { t, fmtUsd, fmtDate } = useI18n()
+export function DailyChart({ days, measure, switchIdx, plans, shown }: Props) {
+  const { t, fmtDate } = useI18n()
+  const { scale: sc, total, parts, fmt } = measure
   const n = days.length
-  const zoomed = s.rescaleIdx >= 0 && shown >= s.rescaleIdx
-  const scale = zoomed ? s.after : s.before
-  const tickValues = [...new Set([...s.before.ticks, ...s.after.ticks])].sort((a, b) => a - b)
+  const zoomed = sc.rescaleIdx >= 0 && shown >= sc.rescaleIdx
+  const scale = zoomed ? sc.after : sc.before
+  const tickValues = [...new Set([...sc.before.ticks, ...sc.after.ticks])].sort((a, b) => a - b)
   const base = plans[0]
   const upgrade = plans[1]
   const mondays = days.map((d, i) => ({ d, i })).filter(({ d }) => isMonday(d.date))
@@ -40,18 +44,20 @@ export function DailyChart({ days, story: s, plans, shown }: Props) {
   }
 
   return (
-    <figure className="rc-chart" data-zoomed={zoomed}>
-      <figcaption className="visually-hidden">{t.daily.lede}</figcaption>
+    <figure className="rc-chart" data-zoomed={zoomed} data-unit={measure.unit}>
+      <figcaption className="visually-hidden">{t.daily.units[measure.unit].lede}</figcaption>
       <div
+        // A change of unit redraws the plot outright, rather than gliding the ticks between unrelated scales.
+        key={measure.unit}
         className="rc-plot"
-        style={{ '--ymax': scale.max, '--zoom': zoomed ? 1 : s.after.max / s.before.max } as CSSProperties}
+        style={{ '--ymax': scale.max, '--zoom': zoomed ? 1 : sc.after.max / sc.before.max } as CSSProperties}
         onPointerMove={track}
         onPointerDown={track}
         onPointerLeave={() => setHover(null)}
       >
         {tickValues.map((v) => (
           <div key={v} className="rc-tick" data-on={scale.ticks.includes(v)} style={{ '--v': v } as CSSProperties} aria-hidden="true">
-            <span>{fmtUsd(v)}</span>
+            <span>{fmt(v)}</span>
           </div>
         ))}
 
@@ -61,17 +67,13 @@ export function DailyChart({ days, story: s, plans, shown }: Props) {
               key={d.date}
               className="rc-slot"
               data-plan={d.plan}
-              data-past={upgrade && d.plan === base.id && shown >= s.switchIdx}
+              data-past={upgrade && d.plan === base.id && shown >= switchIdx}
               data-peek={i === peek}
             >
               {d.active && (
-                <div className="rc-bar" data-printed={i <= shown} style={{ height: `${(d.cost / s.after.max) * 100}%` }}>
-                  {d.segments.map((seg) => (
-                    <div
-                      key={seg.model}
-                      className="rc-seg"
-                      style={{ flexGrow: seg.cost / d.cost, background: modelColor(seg.model) }}
-                    />
+                <div className="rc-bar" data-printed={i <= shown} style={{ height: `${(total(d) / sc.after.max) * 100}%` }}>
+                  {parts(d).map((p) => (
+                    <div key={p.key} className="rc-seg" style={{ flexGrow: p.value / total(d), background: p.color }} />
                   ))}
                 </div>
               )}
@@ -87,34 +89,34 @@ export function DailyChart({ days, story: s, plans, shown }: Props) {
           ))}
         </div>
 
-        {s.switchIdx < n && (
+        {switchIdx < n && (
           <div
             className="rc-stop"
-            data-on={shown >= s.switchIdx}
-            style={{ '--x': s.switchIdx / n } as CSSProperties}
+            data-on={shown >= switchIdx}
+            style={{ '--x': switchIdx / n } as CSSProperties}
             aria-hidden="true"
           >
             <span>
-              {t.chronicle.stopPress} {fmtDate(days[s.switchIdx].date)}
+              {t.chronicle.stopPress} {fmtDate(days[switchIdx].date)}
             </span>
           </div>
         )}
 
         <div
           className="rc-ref"
-          data-on={shown >= s.record.idx}
-          style={{ '--v': s.record.cost } as CSSProperties}
+          data-on={shown >= sc.record.idx}
+          style={{ '--v': sc.record.value } as CSSProperties}
           aria-hidden="true"
         >
-          <span>{t.chronicle.record(base.name, fmtUsd(s.record.cost))}</span>
+          <span>{t.chronicle.record(base.name, fmt(sc.record.value))}</span>
         </div>
 
         {peek !== null && <div className="rc-peek" style={{ '--x': peek / n, '--w': 1 / n } as CSSProperties} aria-hidden="true" />}
-        {peek !== null && <DayCard day={days[peek]} at={(peek + 0.5) / n} plans={plans} />}
+        {peek !== null && <DayCard day={days[peek]} at={(peek + 0.5) / n} plans={plans} measure={measure} />}
 
-        {s.rescaleIdx >= 0 && (
+        {sc.rescaleIdx >= 0 && (
           <p className="rc-zoom" data-on={zoomed} aria-hidden="true">
-            {t.chronicle.zoomed(fmtUsd(s.before.max), fmtUsd(s.after.max))}
+            {t.chronicle.zoomed(fmt(sc.before.max), fmt(sc.after.max))}
           </p>
         )}
       </div>
@@ -135,9 +137,10 @@ export function DailyChart({ days, story: s, plans, shown }: Props) {
   )
 }
 
-/** The hovered day, model by model, top of the stack first, the way the bar reads. */
-function DayCard({ day, at, plans }: { day: ChronicleDay; at: number; plans: Plan[] }) {
-  const { t, fmtUsd, fmtDate } = useI18n()
+/** The hovered day, part by part, top of the stack first, the way the bar reads. */
+function DayCard({ day, at, plans, measure }: { day: ChronicleDay; at: number; plans: Plan[]; measure: Measure }) {
+  const { t, fmtDate } = useI18n()
+  const { total, parts, fmt } = measure
   const plan = plans.find((p) => p.id === day.plan)
   return (
     <div className="rc-card" data-flip={at > 0.6} style={{ '--x': at } as CSSProperties} aria-hidden="true">
@@ -146,17 +149,19 @@ function DayCard({ day, at, plans }: { day: ChronicleDay; at: number; plans: Pla
       {day.active ? (
         <>
           <ul>
-            {[...day.segments].reverse().map((seg) => (
-              <li key={seg.model}>
-                <i className="swatch" style={{ background: modelColor(seg.model) }} />
-                <span>{seg.model}</span>
-                <span className="num">{fmtUsd(seg.cost, 2)}</span>
-              </li>
-            ))}
+            {parts(day)
+              .reverse()
+              .map((p) => (
+                <li key={p.key}>
+                  <i className="swatch" style={{ background: p.color }} />
+                  <span>{p.label}</span>
+                  <span className="num">{fmt(p.value, 2)}</span>
+                </li>
+              ))}
           </ul>
           <p className="rc-card-total">
             <span>{t.daily.total}</span>
-            <span className="num">{fmtUsd(day.cost, 2)}</span>
+            <span className="num">{fmt(total(day), 2)}</span>
           </p>
         </>
       ) : (
