@@ -1,56 +1,31 @@
 import { useState, type CSSProperties, type PointerEvent } from 'react'
 import type { Plan } from '../config/plans'
-import type { ChartScale, ChronicleDay, Story } from '../lib/chronicle'
-import { modelColor } from '../lib/colors'
-import { TOKEN_KINDS, tokenTotal } from '../lib/tokenKinds'
+import type { ChronicleDay } from '../lib/chronicle'
+import type { Measure } from '../lib/measure'
 import { useI18n } from '../i18n'
-
-/** What a bar measures: API-equivalent cost stacked by model, or tokens stacked by kind. */
-export type Unit = 'cost' | 'tokens'
 
 interface Props {
   days: ChronicleDay[]
-  story: Story
-  /** The axis for the unit on show; the story's own scale is the cost one. */
-  scale: ChartScale
-  unit: Unit
+  /** The unit on show: its scale, its parts and how its numbers read. */
+  measure: Measure
+  /** Index of the first day on the upgraded plan, where the stop press runs. */
+  switchIdx: number
   plans: Plan[]
   /** Index of the last printed day. */
   shown: number
-}
-
-interface Part {
-  key: string
-  label: string
-  value: number
-  color: string
-}
-
-/** One day's bar in the unit on show: its total and its parts, bottom of the stack first. */
-function useBars(unit: Unit) {
-  const { t, fmtUsd, fmtTokens } = useI18n()
-  const total = (d: ChronicleDay) => (unit === 'cost' ? d.cost : tokenTotal(d.tokens))
-  const parts = (d: ChronicleDay): Part[] =>
-    unit === 'cost'
-      ? d.segments.map((seg) => ({ key: seg.model, label: seg.model, value: seg.cost, color: modelColor(seg.model) }))
-      : TOKEN_KINDS.map((k) => ({ key: k.kind, label: t.tokens[k.kind], value: d.tokens[k.key], color: k.fill })).filter(
-          (p) => p.value > 0,
-        )
-  const fmt = (n: number, digits?: number) => (unit === 'cost' ? fmtUsd(n, digits) : fmtTokens(n))
-  return { total, parts, fmt }
 }
 
 /** Days print in date order; a Monday gets a date on the axis. Danish and English both start the week there. */
 const isMonday = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay() === 1
 
 /**
- * The record as a finance-page column chart: one slot per calendar day, stacked by model. Bars are drawn
- * against the full-period axis and the whole bar layer is stretched by `--zoom` while the first plan's axis
+ * The record as a finance-page column chart: one slot per calendar day, stacked by the measure's parts. Bars are
+ * drawn against the full-period axis and the whole bar layer is stretched by `--zoom` while the first plan's axis
  * still holds, so the zoom-out at the peak is one transform on one layer, not a re-layout of every bar.
  */
-export function DailyChart({ days, story: s, scale: sc, unit, plans, shown }: Props) {
+export function DailyChart({ days, measure, switchIdx, plans, shown }: Props) {
   const { t, fmtDate } = useI18n()
-  const { total, parts, fmt } = useBars(unit)
+  const { scale: sc, total, parts, fmt } = measure
   const n = days.length
   const zoomed = sc.rescaleIdx >= 0 && shown >= sc.rescaleIdx
   const scale = zoomed ? sc.after : sc.before
@@ -69,11 +44,11 @@ export function DailyChart({ days, story: s, scale: sc, unit, plans, shown }: Pr
   }
 
   return (
-    <figure className="rc-chart" data-zoomed={zoomed} data-unit={unit}>
-      <figcaption className="visually-hidden">{unit === 'cost' ? t.daily.lede : t.daily.ledeTokens}</figcaption>
+    <figure className="rc-chart" data-zoomed={zoomed} data-unit={measure.unit}>
+      <figcaption className="visually-hidden">{measure.lede}</figcaption>
       <div
         // A change of unit redraws the plot outright, rather than gliding the ticks between unrelated scales.
-        key={unit}
+        key={measure.unit}
         className="rc-plot"
         style={{ '--ymax': scale.max, '--zoom': zoomed ? 1 : sc.after.max / sc.before.max } as CSSProperties}
         onPointerMove={track}
@@ -92,7 +67,7 @@ export function DailyChart({ days, story: s, scale: sc, unit, plans, shown }: Pr
               key={d.date}
               className="rc-slot"
               data-plan={d.plan}
-              data-past={upgrade && d.plan === base.id && shown >= s.switchIdx}
+              data-past={upgrade && d.plan === base.id && shown >= switchIdx}
               data-peek={i === peek}
             >
               {d.active && (
@@ -114,15 +89,15 @@ export function DailyChart({ days, story: s, scale: sc, unit, plans, shown }: Pr
           ))}
         </div>
 
-        {s.switchIdx < n && (
+        {switchIdx < n && (
           <div
             className="rc-stop"
-            data-on={shown >= s.switchIdx}
-            style={{ '--x': s.switchIdx / n } as CSSProperties}
+            data-on={shown >= switchIdx}
+            style={{ '--x': switchIdx / n } as CSSProperties}
             aria-hidden="true"
           >
             <span>
-              {t.chronicle.stopPress} {fmtDate(days[s.switchIdx].date)}
+              {t.chronicle.stopPress} {fmtDate(days[switchIdx].date)}
             </span>
           </div>
         )}
@@ -137,7 +112,7 @@ export function DailyChart({ days, story: s, scale: sc, unit, plans, shown }: Pr
         </div>
 
         {peek !== null && <div className="rc-peek" style={{ '--x': peek / n, '--w': 1 / n } as CSSProperties} aria-hidden="true" />}
-        {peek !== null && <DayCard day={days[peek]} at={(peek + 0.5) / n} plans={plans} unit={unit} />}
+        {peek !== null && <DayCard day={days[peek]} at={(peek + 0.5) / n} plans={plans} measure={measure} />}
 
         {sc.rescaleIdx >= 0 && (
           <p className="rc-zoom" data-on={zoomed} aria-hidden="true">
@@ -163,9 +138,9 @@ export function DailyChart({ days, story: s, scale: sc, unit, plans, shown }: Pr
 }
 
 /** The hovered day, part by part, top of the stack first, the way the bar reads. */
-function DayCard({ day, at, plans, unit }: { day: ChronicleDay; at: number; plans: Plan[]; unit: Unit }) {
+function DayCard({ day, at, plans, measure }: { day: ChronicleDay; at: number; plans: Plan[]; measure: Measure }) {
   const { t, fmtDate } = useI18n()
-  const { total, parts, fmt } = useBars(unit)
+  const { total, parts, fmt } = measure
   const plan = plans.find((p) => p.id === day.plan)
   return (
     <div className="rc-card" data-flip={at > 0.6} style={{ '--x': at } as CSSProperties} aria-hidden="true">

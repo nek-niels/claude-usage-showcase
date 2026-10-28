@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import type { PlanSummary } from '../lib/aggregate'
 import { useI18n } from '../i18n'
 import { useReveal } from '../lib/motion'
-import { TOKEN_KINDS as KINDS } from '../lib/tokenKinds'
+import { TOKEN_KINDS } from '../lib/tokenKinds'
 import { CountUp } from './CountUp'
 
 /** The bar starts at zero by construction, so the scale only marks the quarters. */
@@ -18,7 +18,7 @@ const WIPE_MS = 1400
 export function TokenBreakdown({ plans }: { plans: PlanSummary[] }) {
   const { t, fmtPct, fmtTokens } = useI18n()
   const all = plans.reduce((a, p) => a + p.totalTokens, 0)
-  const totals = KINDS.map((k) => ({ ...k, total: plans.reduce((a, p) => a + p.tokens[k.key], 0) }))
+  const totals = TOKEN_KINDS.map((k) => ({ ...k, total: plans.reduce((a, p) => a + p.tokens[k.key], 0) }))
   const cacheShare = totals[0].total / all
   const [ref, reveal] = useReveal<HTMLDivElement>(WIPE_MS + 400)
   // A share too small to show at one decimal reads as "<0.1%", never as a false 0.0%.

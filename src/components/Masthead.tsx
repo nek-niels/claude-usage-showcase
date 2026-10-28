@@ -44,7 +44,7 @@ export function Masthead({
         <p className="mast-name">{t.topbar.brand}</p>
         <div className="mast-ear mast-ear--controls">
           <LanguageSwitch />
-          <button type="button" className="mast-toggle" onClick={onToggleTheme}>
+          <button type="button" className="mast-toggle switch-button" onClick={onToggleTheme}>
             {theme === 'dark' ? t.topbar.toLight : t.topbar.toDark}
           </button>
         </div>

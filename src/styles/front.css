@@ -79,37 +79,7 @@
   align-items: flex-end;
 }
 
-.mast-lang {
-  display: flex;
-}
-
-.mast-lang button,
-.mast-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 30px;
-  padding: 0 8px;
-  font-family: var(--font-figures);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--text-secondary);
-  background: none;
-  border: 0;
-  border-radius: 0;
-  cursor: pointer;
-  transition:
-    color 150ms ease,
-    transform 120ms var(--ease-out);
-}
-
-.mast-lang button + button {
-  border-left: 1px solid var(--rule-soft);
-}
-
+/* The language switch and the theme toggle are switches (see styles.css); the masthead sets their edges and flags. */
 .mast-lang button:last-child,
 .mast-toggle {
   padding-right: 0;
@@ -130,32 +100,12 @@
     filter 150ms ease;
 }
 
-.mast-lang button[aria-pressed='true'] {
-  color: var(--text-primary);
-}
-
-.mast-lang button[aria-pressed='true'] span {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 5px;
-}
-
 .mast-lang button[aria-pressed='true'] svg {
   opacity: 1;
   filter: none;
 }
 
-.mast-lang button:active,
-.mast-toggle:active {
-  transform: translateY(1px);
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .mast-lang button:hover,
-  .mast-toggle:hover {
-    color: var(--text-primary);
-  }
-
   .mast-lang button:hover svg {
     opacity: 1;
     filter: none;
